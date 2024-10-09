@@ -1,3 +1,5 @@
+-- Created by Fennell
+
 -- Create a SavedVariables table for the addon's settings
 FPSAddonDB = FPSAddonDB or {
     point = "CENTER",
@@ -37,59 +39,68 @@ local function ShowPerformanceStats()
         performanceStatsFrame.text:SetPoint("CENTER", performanceStatsFrame, "CENTER", 0, 0)
     end
 
-    local _, _, latencyHome, latencyWorld = GetNetStats()
-    local totalMemory = gcinfo() / 1024 -- Total memory in MB
-    UpdateAddOnMemoryUsage()
+    local function UpdatePerformanceStats()
+        local _, _, latencyHome, latencyWorld = GetNetStats()
+        local totalMemory = gcinfo() / 1024 -- Total memory in MB
+        UpdateAddOnMemoryUsage()
 
-    -- Addon-specific memory and CPU usage (Retail Only)
-    local addonMemory = GetAddOnMemoryUsage("YourAddonNameHere") / 1024 -- Addon-specific memory in MB
-    local addonCPUUsage = GetAddOnCPUUsage("YourAddonNameHere") / 1000 -- CPU usage in seconds (Retail Only)
+        -- Addon-specific memory and CPU usage (Retail Only)
+        local addonMemory = GetAddOnMemoryUsage("YourAddonNameHere") / 1024 -- Addon-specific memory in MB
+        local addonCPUUsage = GetAddOnCPUUsage("YourAddonNameHere") / 1000 -- CPU usage in seconds (Retail Only)
 
-    -- Player coordinates
-    local mapID = C_Map.GetBestMapForUnit("player")
-    local position = C_Map.GetPlayerMapPosition(mapID, "player")
-    local x, y = 0, 0
-    if position then
-        x, y = position:GetXY()
+        -- Player coordinates
+        local mapID = C_Map.GetBestMapForUnit("player")
+        local position = C_Map.GetPlayerMapPosition(mapID, "player")
+        local x, y = 0, 0
+        if position then
+            x, y = position:GetXY()
+        end
+
+        -- Player speed
+        local speed = GetUnitSpeed("player") / 7 * 100 -- 7 is the base movement speed
+
+        -- Texture quality settings
+        local textureQuality = GetCVar("graphicsTextureResolution")
+
+        -- Ping jitter calculation
+        local previousPing = FPSAddonDB.previousPing or latencyHome
+        local pingJitter = math.abs(latencyHome - previousPing)
+        FPSAddonDB.previousPing = latencyHome
+
+        -- Addon count (Retail only, check if function exists)
+        local addonCountText = ""
+        if GetNumAddOns then
+            local totalAddOns = GetNumAddOns()
+            addonCountText = string.format("Addon Count: %d\n", totalAddOns)
+        end
+
+        -- Session playtime with seconds
+        local sessionDuration = GetTime() - sessionStartTime
+        local hours = floor(sessionDuration / 3600)
+        local minutes = floor((sessionDuration % 3600) / 60)
+        local seconds = floor(sessionDuration % 60)
+
+        -- Update performance stats text
+        performanceStatsFrame.text:SetText(string.format(
+            "Ping: %d ms(H), %d ms(W)\nTotal Memory: %.2f MB\nAddon Memory: %.2f MB\nAddon CPU Usage: %.2f s\nPlayer Coords: %.2f, %.2f\nPlayer Speed: %.2f%%\nTexture Quality: %d\nPing Jitter: %d ms\n%sSession Time: %02d:%02d:%02d",
+            latencyHome, latencyWorld, totalMemory, addonMemory, addonCPUUsage, x * 100, y * 100, speed, textureQuality, pingJitter, addonCountText, hours, minutes, seconds
+        ))
+
+        performanceStatsFrame:Show()
     end
 
-    -- Player speed
-    local speed = GetUnitSpeed("player") / 7 * 100 -- 7 is the base movement speed
-
-    -- Texture quality settings
-    local textureQuality = GetCVar("graphicsTextureResolution")
-
-    -- Ping jitter calculation
-    local previousPing = FPSAddonDB.previousPing or latencyHome
-    local pingJitter = math.abs(latencyHome - previousPing)
-    FPSAddonDB.previousPing = latencyHome
-
-    -- Addon count (Retail only, check if function exists)
-    local addonCountText = ""
-    if GetNumAddOns then
-        local totalAddOns = GetNumAddOns()
-        addonCountText = string.format("Addon Count: %d\n", totalAddOns)
-    end
-
-    -- Session playtime with seconds
-    local sessionDuration = GetTime() - sessionStartTime
-    local hours = floor(sessionDuration / 3600)
-    local minutes = floor((sessionDuration % 3600) / 60)
-    local seconds = floor(sessionDuration % 60)
-
-    -- Performance stats text
-    performanceStatsFrame.text:SetText(string.format(
-        "Ping: %d ms(H), %d ms(W)\nTotal Memory: %.2f MB\nAddon Memory: %.2f MB\nAddon CPU Usage: %.2f s\nPlayer Coords: %.2f, %.2f\nPlayer Speed: %.2f%%\nTexture Quality: %d\nPing Jitter: %d ms\n%sSession Time: %02d:%02d:%02d",
-        latencyHome, latencyWorld, totalMemory, addonMemory, addonCPUUsage, x * 100, y * 100, speed, textureQuality, pingJitter, addonCountText, hours, minutes, seconds
-    ))
-
-    performanceStatsFrame:Show()
+    -- Start a ticker to update the stats every second while hovered
+    statsTicker = C_Timer.NewTicker(1, UpdatePerformanceStats)
 end
 
--- Function to hide the performance stats window
+-- Function to hide the performance stats window and stop the ticker
 local function HidePerformanceStats()
     if performanceStatsFrame then
         performanceStatsFrame:Hide()
+    end
+    if statsTicker then
+        statsTicker:Cancel()
+        statsTicker = nil
     end
 end
 
