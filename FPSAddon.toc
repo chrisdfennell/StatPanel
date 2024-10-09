@@ -1,0 +1,10 @@
+## Interface: 100200
+## Title: FPS Addon
+## Notes: Displays FPS, ping, and more with customizations.
+## Author: Fennell
+## Version: 1.0
+## SavedVariables: FPSAddonDB
+
+FPSMain.lua
+FPS.lua
+Options.lua
