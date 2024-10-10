@@ -1,15 +1,47 @@
 local addonName, addonTable = ...
-local optionsPanelCreated = false
+local optionsPanelCreated = false -- Prevent duplicate creation
+
+-- Color picker helper function
+local function ShowColorPicker(r, g, b, a, changedCallback)
+    -- Function to handle color change
+    ColorPickerFrame.func = function()
+        local newR, newG, newB = ColorPickerFrame:GetColorRGB()
+        local newA = a -- Default to the current alpha if opacity isn't used
+        if ColorPickerFrame.hasOpacity then
+            newA = OpacitySliderFrame and OpacitySliderFrame:GetValue() or a
+        end
+        changedCallback(newR, newG, newB, newA)
+    end
+
+    -- Function to handle color picker cancellation
+    ColorPickerFrame.cancelFunc = function()
+        local oldR, oldG, oldB, oldA = unpack(ColorPickerFrame.previousValues)
+        changedCallback(oldR, oldG, oldB, oldA)
+    end
+
+    ColorPickerFrame.swatchFunc = ColorPickerFrame.func
+
+    -- Save the previous values so they can be restored on cancel
+    ColorPickerFrame.previousValues = {r, g, b, a}
+    ColorPickerFrame.hasOpacity = true -- Ensure opacity is enabled
+    ColorPickerFrame.opacity = a or 1
+
+    -- Set color safely
+    if ColorPickerFrame.SetColorRGB then
+        ColorPickerFrame:SetColorRGB(r or 1, g or 1, b or 1) -- Use default values if any are nil
+    else
+        print("Warning: ColorPickerFrame does not support SetColorRGB")
+    end
+
+    -- Show the color picker
+    ColorPickerFrame:Hide() -- Necessary to trigger the OnShow handler
+    ColorPickerFrame:Show() -- Show the Color Picker
+end
 
 -- Function to create the options panel
 function FPSAddon_CreateOptionsPanel(fpsText)
-    if optionsPanelCreated then return end
+    if optionsPanelCreated then return end -- Prevent duplicate creation
     optionsPanelCreated = true
-
-    -- Ensure updateInterval is properly initialized
-    if not FPSAddonDB.updateInterval or type(FPSAddonDB.updateInterval) ~= "number" then
-        FPSAddonDB.updateInterval = 0.5 -- Fallback to default 0.5 seconds
-    end
 
     -- Create the main options panel frame
     local optionsFrame = CreateFrame("Frame", "FPSAddonOptions", InterfaceOptionsFramePanelContainer)
@@ -24,62 +56,72 @@ function FPSAddon_CreateOptionsPanel(fpsText)
     local fontSizeSlider = CreateFrame("Slider", "FPSFontSizeSlider", optionsFrame, "OptionsSliderTemplate")
     fontSizeSlider:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -40)
     fontSizeSlider:SetMinMaxValues(8, 32)
-    fontSizeSlider:SetValue(FPSAddonDB.fontSize)
+    fontSizeSlider:SetValue(FPSAddonDB.fontSize or 14)
     fontSizeSlider:SetValueStep(1)
-    fontSizeSlider:SetObeyStepOnDrag(true)
-
-    -- Font size slider labels
-    local FPSFontSizeSliderText = fontSizeSlider:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    FPSFontSizeSliderText:SetPoint("TOP", fontSizeSlider, "BOTTOM", 0, -5)
     FPSFontSizeSliderText:SetText("Font Size")
+    FPSFontSizeSliderLow:SetText("8")
+    FPSFontSizeSliderHigh:SetText("32")
 
     fontSizeSlider:SetScript("OnValueChanged", function(self, value)
         FPSAddonDB.fontSize = value
-        fpsText:SetFont("Fonts\\FRIZQT__.TTF", value)
+        if fpsText then
+            fpsText:SetFont("Fonts\\FRIZQT__.TTF", value)
+        end
     end)
 
-    -- Checkbox for FPS display toggle
-    local showFPSToggle = CreateFrame("CheckButton", nil, optionsFrame, "UICheckButtonTemplate")
-    showFPSToggle:SetPoint("TOPLEFT", fontSizeSlider, "BOTTOMLEFT", 0, -30)
-    showFPSToggle.text:SetText("Show FPS")
-    showFPSToggle:SetChecked(FPSAddonDB.showFPS)
+    -- Color picker for FPS text color
+    local colorPickerButton = CreateFrame("Button", nil, optionsFrame, "UIPanelButtonTemplate")
+    colorPickerButton:SetPoint("TOPLEFT", fontSizeSlider, "BOTTOMLEFT", 0, -20)
+    colorPickerButton:SetText("Set Text Color")
+    colorPickerButton:SetSize(120, 30)
 
-    showFPSToggle:SetScript("OnClick", function(self)
+    colorPickerButton:SetScript("OnClick", function()
+        local textColor = FPSAddonDB.textColor or {1, 1, 1, 1}
+        ShowColorPicker(textColor[1], textColor[2], textColor[3], textColor[4], function(newR, newG, newB, newA)
+            FPSAddonDB.textColor = {newR, newG, newB, newA}
+            if addonTable.fpsText then
+                addonTable.fpsText:SetTextColor(newR, newG, newB, newA)
+            end
+        end)
+    end)
+
+    -- Show/Hide Stats Panel Checkbox
+    local showStatsCheckbox = CreateFrame("CheckButton", "FPSAddonShowStatsCheckbox", optionsFrame, "InterfaceOptionsCheckButtonTemplate")
+    showStatsCheckbox:SetPoint("TOPLEFT", colorPickerButton, "BOTTOMLEFT", 0, -20)
+    showStatsCheckbox.Text:SetText("Show Stats Panel")
+    showStatsCheckbox:SetChecked(FPSAddonDB.showStatPanel)
+
+    showStatsCheckbox:SetScript("OnClick", function(self)
+        FPSAddonDB.showStatPanel = self:GetChecked()
+        FPSAddon_UpdateStatPanelVisibility()
+    end)
+
+    -- Show/Hide FPS Checkbox
+    local showFPSCheckbox = CreateFrame("CheckButton", "FPSAddonShowFPSCheckbox", optionsFrame, "InterfaceOptionsCheckButtonTemplate")
+    showFPSCheckbox:SetPoint("TOPLEFT", showStatsCheckbox, "BOTTOMLEFT", 0, -10)
+    showFPSCheckbox.Text:SetText("Show FPS")
+    showFPSCheckbox:SetChecked(FPSAddonDB.showFPS)
+
+    showFPSCheckbox:SetScript("OnClick", function(self)
         FPSAddonDB.showFPS = self:GetChecked()
-        UpdateText()
-    end)
-
-    -- Checkbox for Home Latency display toggle
-    local showHomeLatencyToggle = CreateFrame("CheckButton", nil, optionsFrame, "UICheckButtonTemplate")
-    showHomeLatencyToggle:SetPoint("TOPLEFT", showFPSToggle, "BOTTOMLEFT", 0, -20)
-    showHomeLatencyToggle.text:SetText("Show Home Latency")
-    showHomeLatencyToggle:SetChecked(FPSAddonDB.showHomeLatency)
-
-    showHomeLatencyToggle:SetScript("OnClick", function(self)
-        FPSAddonDB.showHomeLatency = self:GetChecked()
-        UpdateText()
-    end)
-
-    -- Checkbox for World Latency display toggle
-    local showWorldLatencyToggle = CreateFrame("CheckButton", nil, optionsFrame, "UICheckButtonTemplate")
-    showWorldLatencyToggle:SetPoint("TOPLEFT", showHomeLatencyToggle, "BOTTOMLEFT", 0, -20)
-    showWorldLatencyToggle.text:SetText("Show World Latency")
-    showWorldLatencyToggle:SetChecked(FPSAddonDB.showWorldLatency)
-
-    showWorldLatencyToggle:SetScript("OnClick", function(self)
-        FPSAddonDB.showWorldLatency = self:GetChecked()
-        UpdateText()
+        if addonTable.fpsText then
+            if FPSAddonDB.showFPS then
+                addonTable.fpsText:Show()
+            else
+                addonTable.fpsText:Hide()
+            end
+        end
     end)
 
     -- Register the options panel in the interface options
-    if Settings and type(addonName) == "string" then
-        -- For Retail WoW
+    if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(optionsFrame, addonName)
-        Settings.RegisterAddOnCategory(category) -- Explicitly register the category
-    elseif InterfaceOptions_AddCategory and type(addonName) == "string" then
-        -- For Classic WoW
-        InterfaceOptions_AddCategory(optionsFrame)
+        Settings.RegisterAddOnCategory(category)
     else
-        print("Error: Invalid addonName or WoW version mismatch.")
+        if InterfaceOptions_AddCategory then
+            InterfaceOptions_AddCategory(optionsFrame)
+        else
+            print("Error: Interface options API is not available.")
+        end
     end
 end

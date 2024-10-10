@@ -5,6 +5,7 @@
 ## Version: 1.0
 ## SavedVariables: FPSAddonDB
 
-FPSMain.lua
-FPS.lua
 Options.lua
+StatPanel.lua
+FPS.lua
+FPSMain.lua
