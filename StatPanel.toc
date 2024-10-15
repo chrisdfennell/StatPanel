@@ -1,0 +1,10 @@
+## Interface: 100200
+## Title: StatPanel
+## Notes: Displays Secondary Stats and FPS
+## Author: Fennell
+## Version: 1.0
+## SavedVariables: SPAddonDB
+
+Options.lua
+StatPanel.lua
+SPMain.lua

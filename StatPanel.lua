@@ -16,12 +16,12 @@ local sessionStartTime = GetTime()
 
 -- Declare the StatPanel function globally to avoid nil value errors
 CreateStatPanel = function()
-    if FPSAddon_StatPanel then
-        return FPSAddon_StatPanel -- If already created, return the existing frame
+    if SPAddon_StatPanel then
+        return SPAddon_StatPanel -- If already created, return the existing frame
     end
 
     local statFrame = CreateFrame("Frame", "StatPanelFrame", UIParent)
-    statFrame:SetSize(180, 400) -- Adjusted size to fit the bars and FPS
+    statFrame:SetSize(180, 350) -- Adjusted size to reduce blank space
     statFrame:SetPoint("CENTER", UIParent, "CENTER", 300, 0) -- Position on the screen
     statFrame:SetMovable(true)
     statFrame:EnableMouse(true)
@@ -38,7 +38,7 @@ CreateStatPanel = function()
     statFrame.border = CreateFrame("Frame", nil, statFrame, "BackdropTemplate")
     statFrame.border:SetAllPoints(statFrame)
     statFrame.border:SetBackdrop({
-        edgeFile = "Interface\Tooltips\UI-Tooltip-Border",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         edgeSize = 16,
     })
     statFrame.border:SetBackdropBorderColor(1, 1, 1, 0.8) -- White border
@@ -49,9 +49,9 @@ CreateStatPanel = function()
     statFrame.title:SetTextColor(1, 0.85, 0) -- Gold color for the title
     statFrame.title:SetText("iLvl: 000") -- Placeholder, updated dynamically
 
-    -- Check if FPSAddonDB is loaded properly
-    if not FPSAddonDB then
-        print("Error: FPSAddonDB is not initialized.")
+    -- Check if SPAddonDB is loaded properly
+    if not SPAddonDB then
+        print("Error: SPAddonDB is not initialized.")
         return statFrame -- Return the empty frame if DB is not initialized
     end
 
@@ -84,7 +84,7 @@ CreateStatPanel = function()
         local bar = CreateFrame("StatusBar", nil, statFrame)
         bar:SetSize(150, 16) -- Adjusted size to dynamically fill the frame
         bar:SetPoint("TOP", statFrame, "TOP", 0, yOffset)
-        bar:SetStatusBarTexture("Interface\TargetingFrame\UI-StatusBar")
+        bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
         bar:SetStatusBarColor(unpack(statColor)) -- Set the color
 
         -- Create a label for the stat text
@@ -106,7 +106,7 @@ CreateStatPanel = function()
     -- Create sections
     local function CreateBarsForSection(section, yOffset)
         -- Check if the section should be shown
-        if not FPSAddonDB[section.key] then
+        if not SPAddonDB[section.key] then
             return yOffset
         end
 
@@ -132,11 +132,11 @@ CreateStatPanel = function()
 
     -- Add FPS display
     local fpsText = statFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    fpsText:SetPoint("BOTTOM", statFrame, "BOTTOM", 0, 20)
-    fpsText:SetFont("Fonts\FRIZQT__.TTF", FPSAddonDB.fontSize or 14)
+    fpsText:SetPoint("BOTTOM", statFrame, "BOTTOM", 0, 10) -- Adjusted to remove extra space
+    fpsText:SetFont("Fonts\\FRIZQT__.TTF", SPAddonDB.fontSize or 14)
 
     -- Ensure that the color values are set or use defaults
-    local textColor = FPSAddonDB.textColor or {1, 1, 1, 1}
+    local textColor = SPAddonDB.textColor or {1, 1, 1, 1}
     fpsText:SetTextColor(textColor[1] or 1, textColor[2] or 1, textColor[3] or 1, textColor[4] or 1)
     statFrame.fpsText = fpsText -- Store reference to fpsText for updates
 
@@ -163,6 +163,7 @@ CreateStatPanel = function()
         local armor = select(2, UnitArmor("player")) -- Get effective armor value
         local playerLevel = UnitLevel("player")
         local damageReduction = armor / (armor + (467.5 * playerLevel - 22167.5))
+        local inverseDamageReduction = 100 - (damageReduction * 100)
         local dodge = GetDodgeChance()
         local leech = GetCombatRatingBonus(CR_LIFESTEAL)
         local avoidance = GetAvoidance()
@@ -219,9 +220,9 @@ CreateStatPanel = function()
             statBars["Versatility"]:SetValue(versatility)
         end
         if statText["Armor"] then
-            statText["Armor"]:SetText(string.format("Damage Reduction: %.2f%%", damageReduction * 100))
+            statText["Armor"]:SetText(string.format("Damage Reduction: %.2f%%", inverseDamageReduction))
             statBars["Armor"]:SetMinMaxValues(0, 100)
-            statBars["Armor"]:SetValue(damageReduction * 100)
+            statBars["Armor"]:SetValue(inverseDamageReduction)
         end
         if statText["Dodge"] then
             statText["Dodge"]:SetText(string.format("Dodge: %.2f%%", dodge))
@@ -246,7 +247,7 @@ CreateStatPanel = function()
         end
 
         -- Update FPS
-        if FPSAddonDB.showFPS then
+        if SPAddonDB.showFPS then
             local fps = GetFramerate()
             fpsText:SetText(string.format("FPS: %.1f", fps))
             fpsText:Show()
@@ -263,21 +264,21 @@ CreateStatPanel = function()
     -- Initial update
     UpdateStats(statFrame, 0)
 
-    FPSAddon_StatPanel = statFrame
+    SPAddon_StatPanel = statFrame
     return statFrame
 end
 
 function ToggleStatPanel()
     -- Check if the stat panel has been created, create if not
-    if not FPSAddon_StatPanel then
-        FPSAddon_StatPanel = CreateStatPanel()
+    if not SPAddon_StatPanel then
+        SPAddon_StatPanel = CreateStatPanel()
     end
 
     -- Ensure it's toggled based on the database setting
-    if FPSAddonDB.showStatPanel then
-        FPSAddon_StatPanel:Show()
+    if SPAddonDB.showStatPanel then
+        SPAddon_StatPanel:Show()
     else
-        FPSAddon_StatPanel:Hide()
+        SPAddon_StatPanel:Hide()
     end
 end
 
@@ -287,7 +288,7 @@ eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:SetScript("OnEvent", function(self, event, arg1)
     if arg1 == addonName then
         -- Ensure the panel is created only once on ADDON_LOADED
-        if not FPSAddon_StatPanel and FPSAddonDB.showStatPanel then
+        if not SPAddon_StatPanel and SPAddonDB.showStatPanel then
             ToggleStatPanel()
         end
     end
