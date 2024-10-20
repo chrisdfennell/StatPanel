@@ -175,8 +175,6 @@ CreateStatPanel = function()
         -- Calculate damage reduction against the current target
         if UnitExists("target") then
             local targetLevel = UnitLevel("target") or -1
-            print("Target changed: " .. (UnitName("target") or "Unknown") .. ", Level: " .. (targetLevel == -1 and "Boss" or tostring(targetLevel)))
-            local targetLevel = UnitLevel("target") or -1
             local maxPlayerLevel = GetMaxPlayerLevel()
             if UnitClassification("target") == "worldboss" or targetLevel == -1 or targetLevel > playerLevel + 2 then
                 -- For bosses or higher-level targets (e.g., level 83 raid boss)
@@ -246,7 +244,7 @@ CreateStatPanel = function()
             statBars["Versatility"]:SetValue(versatility)
         end
         if statText["Armor"] then
-            statText["Armor"]:SetText(string.format("Damage Reduction: %.2f%%", damageReductionCurrentTarget))
+            statText["Armor"]:SetText(string.format("Damage Reduction: %d%%", damageReductionCurrentTarget))
             statBars["Armor"]:SetMinMaxValues(0, 100)
             statBars["Armor"]:SetValue(damageReductionCurrentTarget)
         end
