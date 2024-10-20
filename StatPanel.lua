@@ -278,10 +278,7 @@
              fpsText:Hide()
          end
      end
- 
-     -- Set OnUpdate script to continuously update stats
      
- 
      -- Register necessary events to update stats
      statFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
      statFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
