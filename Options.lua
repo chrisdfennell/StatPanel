@@ -123,6 +123,16 @@ function SPAddon_CreateOptionsPanel(fpsText)
         end
     end)
 
+    -- Hide in Combat Checkbox
+    local hideInCombatCheckbox = CreateFrame("CheckButton", "SPAddonHideInCombatCheckbox", optionsFrame, "InterfaceOptionsCheckButtonTemplate")
+    hideInCombatCheckbox:SetPoint("TOPLEFT", showFPSCheckbox, "BOTTOMLEFT", 0, -10)
+    hideInCombatCheckbox.Text:SetText("Hide Panel in Combat")
+    hideInCombatCheckbox:SetChecked(SPAddonDB.hideInCombat)
+
+    hideInCombatCheckbox:SetScript("OnClick", function(self)
+        SPAddonDB.hideInCombat = self:GetChecked()
+    end)
+
     -- Register the options panel in the interface options
     if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(optionsFrame, addonName)
