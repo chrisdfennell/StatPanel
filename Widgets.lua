@@ -69,6 +69,18 @@ local function binding(opts)
     end
 end
 
+-- Previews show fonts the user may not have installed, and 12.0.7 made SetFont
+-- raise on an unreadable asset rather than return false. Fall back to the
+-- default font instead of letting a dropdown row take the options panel down.
+local function safeSetFont(fontString, path, size, flags)
+    if type(path) == "string" and path ~= "" then
+        local ok, applied = pcall(fontString.SetFont, fontString, path, size, flags or "")
+        if ok and applied ~= false then return true end
+    end
+    pcall(fontString.SetFont, fontString, [[Fonts\FRIZQT__.TTF]], size, flags or "")
+    return false
+end
+
 local function newFontString(parent, size, r, g, b)
     local fs = parent:CreateFontString(nil, "OVERLAY")
     fs:SetFont([[Fonts\FRIZQT__.TTF]], size or 12, "")
@@ -367,10 +379,7 @@ local function openMenu(owner, values, current, onSelect, preview)
             button.text:SetFont([[Fonts\FRIZQT__.TTF]], 12, "OUTLINE")
         elseif preview == "font" then
             button.preview:Hide()
-            local path = Media:Fetch("font", value)
-            if not path or not button.text:SetFont(path, 13, "") then
-                button.text:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
-            end
+            safeSetFont(button.text, Media:Fetch("font", value), 13, "")
         else
             button.preview:Hide()
             button.text:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
@@ -465,10 +474,7 @@ function UI:Dropdown(parent, opts)
         self.button.text:SetText(display ~= nil and tostring(display) or "")
 
         if opts.preview == "font" then
-            local path = Media:Fetch("font", current)
-            if not path or not self.button.text:SetFont(path, 13, "") then
-                self.button.text:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
-            end
+            safeSetFont(self.button.text, Media:Fetch("font", current), 13, "")
         end
     end)
 end

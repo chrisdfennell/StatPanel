@@ -226,14 +226,31 @@ function Media:ApplyBackdrop(frame, opts)
 end
 
 -- Convenience: resolve a full font spec (face name + size + flags) at once.
+-- Applies a font, returning false rather than erroring if it won't take.
+--
+-- Patch 12.0.7 added RequiresValidFontHeight and RequiresValidFontAsset to
+-- SetFont, so an unreadable file or a nonsense size now RAISES instead of
+-- quietly returning false. That is reachable in normal use: a shared-media font
+-- disappears the moment the addon providing it is uninstalled, while the saved
+-- profile still names it.
+local function trySetFont(fontString, path, size, flags)
+    if type(path) ~= "string" or path == "" then return false end
+    if type(size) ~= "number" or size < 1 then return false end
+
+    local ok, applied = pcall(fontString.SetFont, fontString, path, size, flags or "")
+    return ok and applied ~= false
+end
+
 function Media:ApplyFont(fontString, faceName, size, flags, shadow)
     local path = self:Fetch("font", faceName)
     local fallback = self.builtin.font[self.fallback.font]
 
-    -- SetFont errors on a nil path and returns false on an unreadable file;
-    -- either way fall back rather than blanking the text out.
-    if not path or not fontString:SetFont(path, size, flags or "") then
-        fontString:SetFont(fallback, size, flags or "")
+    if not trySetFont(fontString, path, size, flags) then
+        -- Try the built-in font, then a known-good size, before giving up.
+        if not trySetFont(fontString, fallback, size, flags)
+            and not trySetFont(fontString, fallback, 12, "") then
+            return
+        end
     end
 
     if shadow and shadow.enabled then
