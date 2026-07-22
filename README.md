@@ -210,7 +210,12 @@ pwsh -File tools/deploy.ps1 -Watch     # redeploy on every save
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for coding conventions and the pitfalls
-worth knowing about (secret values, deprecated Blizzard templates, taint).
+worth knowing about (secret values, deprecated Blizzard templates, taint), and
+[docs/PUBLISHING.md](docs/PUBLISHING.md) for cutting a release and getting onto
+CurseForge.
+
+Releases are automated: push a `v*` tag and CI builds the zip, attaches it to a
+GitHub release, and uploads it anywhere a token is configured.
 
 ---
 

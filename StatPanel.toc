@@ -9,8 +9,10 @@
 ## Category: Combat
 ## X-License: MIT
 ## X-Website: https://github.com/chrisdfennell/StatPanel
-## X-Curse-Project-ID:
-## X-Wago-ID:
+# Uncomment and fill in once the project exists on each site; the release
+# workflow reads these to know where to upload.
+# ## X-Curse-Project-ID: 000000
+# ## X-Wago-ID: 000000
 
 Media.lua
 Config.lua

@@ -1,0 +1,78 @@
+name: Release
+
+# Push a version tag to cut a release:
+#
+#   git tag -a v2.0.0 -m "2.0.0"
+#   git push origin v2.0.0
+#
+# That builds StatPanel-2.0.0.zip, attaches it to a GitHub release, and uploads
+# it to any distribution site you have configured a token for.
+#
+# You can also run this manually from the Actions tab. Leaving "dry run" ticked
+# builds the zip and attaches it to the run as an artifact WITHOUT publishing
+# anything, which is the safe way to check the package looks right.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build the zip only - do not publish or upload anywhere"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # needed to create the GitHub release and attach the zip
+
+jobs:
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The packager derives the version and changelog from git history,
+          # so it needs the full history and tags rather than a shallow clone.
+          fetch-depth: 0
+
+      - name: Build the addon package
+        uses: BigWigsMods/packager@v2
+        env:
+          # Provided automatically by GitHub; creates the release and attaches
+          # the zip to it.
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional. Add these as repository secrets to enable each upload.
+          # A missing token simply means that site is skipped.
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
+        with:
+          # -d builds the zip but skips every upload.
+          args: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && '-d' || '' }}
+
+      - name: Attach the zip to this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: StatPanel-package
+          path: .release/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summarize what was built
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Package contents"
+            echo
+            for zip in .release/*.zip; do
+              [ -e "$zip" ] || continue
+              echo "**$(basename "$zip")**"
+              echo '```'
+              unzip -l "$zip" | tail -n +4 | head -n -2 | awk '{ $1=$1; print }' | cut -d' ' -f4-
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
