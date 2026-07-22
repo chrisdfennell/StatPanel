@@ -27,9 +27,53 @@ permissions:
   contents: write   # needed to create the GitHub release and attach the zip
 
 jobs:
+  verify:
+    name: Verify tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The packager takes the version from the tag, but "## Version:" in the
+      # TOC is a literal it never rewrites. Tagging v2.1.0 while the TOC still
+      # says 2.0.0 publishes an addon that reports the wrong version in-game,
+      # and nothing downstream notices. Catch it before anything is uploaded.
+      - name: The tag matches the TOC version
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "push" ]; then
+            echo "Manual run - no tag to check."
+            exit 0
+          fi
+
+          tag_version="${GITHUB_REF_NAME#v}"
+          toc_version=$(grep -iE '^##[[:space:]]*Version:' StatPanel.toc |
+            head -n1 | cut -d: -f2- | tr -d '[:space:]')
+
+          if [ -z "$toc_version" ]; then
+            echo "::error file=StatPanel.toc::No '## Version:' line found"
+            exit 1
+          fi
+
+          if [ "$tag_version" != "$toc_version" ]; then
+            echo "::error file=StatPanel.toc::Tag is $GITHUB_REF_NAME ($tag_version) but the TOC says $toc_version. Update '## Version:', then move the tag."
+            exit 1
+          fi
+
+          echo "Tag $GITHUB_REF_NAME matches TOC version $toc_version."
+
+          # Advisory only - the whole CHANGELOG ships as the release notes
+          # either way, it just won't mention this version.
+          if ! grep -qE "^##[[:space:]]*\[?${tag_version//./\\.}\]?" CHANGELOG.md; then
+            echo "::warning file=CHANGELOG.md::No '## [$tag_version]' entry - the release notes will not describe this version"
+          fi
+
   package:
     name: Package
     runs-on: ubuntu-latest
+    # Never publish on a version mismatch. verify runs on manual dispatch too
+    # (where it self-skips), so this doesn't strand dry runs.
+    needs: verify
 
     steps:
       - uses: actions/checkout@v4
