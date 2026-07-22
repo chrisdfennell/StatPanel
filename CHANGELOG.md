@@ -5,6 +5,20 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.1] - 2026-07-21
+
+### Fixed
+
+- **Opposing visibility rules could hide the panel for good.** *Hide during
+  combat* and *Show only during combat* were independent checkboxes, so ticking
+  both left no state in which the panel was visible — it simply never appeared,
+  with no error and nothing on screen to say which setting was responsible.
+  *Hide inside instances* and *Hide outside instances* had the same problem.
+  Each pair is now mutually exclusive: turning one on clears its opposite.
+  Profiles already carrying a conflicting pair — from an import string, a
+  hand-edited SavedVariables or a 1.x upgrade — are repaired when the profile
+  loads.
+
 ## [2.0.0] - 2026-07-21
 
 A rewrite. Everything the panel draws is now read from saved settings instead of

@@ -122,13 +122,38 @@ local function buildGeneral(content, stack)
     stack:Gap(10)
     stack:Add(UI:Header(content, "Visibility"))
 
-    stack:Add(UI:Check(content, { label = "Hide during combat", path = "panel.hideInCombat" }))
-    stack:Add(UI:Check(content, { label = "Show only during combat", path = "panel.onlyInCombat" }))
+    -- Two rules covering opposite states hide the panel everywhere, which reads
+    -- as the addon being broken rather than as a setting. Ticking one clears
+    -- its opposite; refreshAll makes that visibly untick under the cursor.
+    local function clears(opposite)
+        return function(value)
+            if value then Config:Set(opposite, false) end
+        end
+    end
+
+    stack:Add(UI:Check(content, {
+        label = "Hide during combat", path = "panel.hideInCombat",
+        onChange = clears("panel.onlyInCombat"), refreshAll = true,
+        tooltip = "Turning this on clears 'Show only during combat'.",
+    }))
+    stack:Add(UI:Check(content, {
+        label = "Show only during combat", path = "panel.onlyInCombat",
+        onChange = clears("panel.hideInCombat"), refreshAll = true,
+        tooltip = "Turning this on clears 'Hide during combat'.",
+    }))
     stack:Add(UI:Check(content, { label = "Hide while dead", path = "panel.hideWhenDead" }))
     stack:Add(UI:Check(content, { label = "Hide in vehicles", path = "panel.hideInVehicle" }))
     stack:Add(UI:Check(content, { label = "Hide in pet battles", path = "panel.hideInPetBattle" }))
-    stack:Add(UI:Check(content, { label = "Hide inside instances", path = "panel.hideInInstance" }))
-    stack:Add(UI:Check(content, { label = "Hide outside instances", path = "panel.hideOutOfInstance" }))
+    stack:Add(UI:Check(content, {
+        label = "Hide inside instances", path = "panel.hideInInstance",
+        onChange = clears("panel.hideOutOfInstance"), refreshAll = true,
+        tooltip = "Turning this on clears 'Hide outside instances'.",
+    }))
+    stack:Add(UI:Check(content, {
+        label = "Hide outside instances", path = "panel.hideOutOfInstance",
+        onChange = clears("panel.hideInInstance"), refreshAll = true,
+        tooltip = "Turning this on clears 'Hide inside instances'.",
+    }))
 
     stack:Gap(10)
     stack:Add(UI:Header(content, "Mouseover fade"))
