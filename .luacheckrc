@@ -20,11 +20,15 @@ ignore = {
     "542",  -- empty if branch
 }
 
--- Globals this addon creates or writes to.
+-- Globals this addon creates or writes to. ColorPickerFrame and SlashCmdList
+-- are Blizzard's, but registering a slash command and driving the colour picker
+-- both mean assigning into them, so they belong here rather than read_globals.
 globals = {
     "SPAddonDB",
     "SLASH_STATPANEL1",
     "SLASH_STATPANEL2",
+    "SlashCmdList",
+    "ColorPickerFrame",
     -- Kept for backwards compatibility with the 1.x entry points.
     "CreateStatPanel",
     "ToggleStatPanel",
@@ -41,7 +45,7 @@ read_globals = {
 
     -- Core UI
     "CreateFrame", "UIParent", "GameTooltip", "Minimap", "ChatFontNormal",
-    "BackdropTemplateMixin", "Mixin", "ColorPickerFrame", "OpacitySliderFrame",
+    "BackdropTemplateMixin", "Mixin", "OpacitySliderFrame",
     "SettingsPanel", "Settings", "MenuUtil", "MenuResponse", "LibStub",
     "GetCursorPosition", "GetTime", "IsLoggedIn", "InCombatLockdown",
 
@@ -81,6 +85,11 @@ read_globals = {
     "ElvUI",
 }
 
+-- CI installs Lua and LuaRocks into the workspace, so their own sources would
+-- otherwise be linted alongside the addon.
 exclude_files = {
     ".luacheckrc",
+    ".lua/**/*.lua",
+    ".luarocks/**/*.lua",
+    ".install/**/*.lua",
 }
