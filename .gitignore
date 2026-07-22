@@ -12,6 +12,7 @@ log/
 
 # Build output
 *.zip
+.release/
 
 # Claude
 ./claude
