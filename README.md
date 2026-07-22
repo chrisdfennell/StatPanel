@@ -12,9 +12,10 @@ Colors, textures, transparency, borders, fonts, sizes, layout, which stats
 appear and how their numbers are written are all options. If you would rather
 not configure anything, pick one of the 21 presets and you are done.
 
-<!-- Add a screenshot here once you have one:
-     ![StatPanel](docs/screenshot.png)
--->
+![StatPanel](docs/Screenshot.png)
+
+*The default Modern Bars preset: secondaries in Beast Mastery's priority order,
+item level in the title, session speed peak, and framerate with both latencies.*
 
 ---
 
