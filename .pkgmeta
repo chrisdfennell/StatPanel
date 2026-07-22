@@ -1,0 +1,23 @@
+# Packaging manifest for the CurseForge / WowAce packager.
+#
+# The addon has no library dependencies: LibSharedMedia, LibDataBroker and
+# LibDBIcon are all detected at runtime and used only if another addon has
+# already provided them. Nothing is embedded, so there are no externals here.
+
+package-as: StatPanel
+
+enable-nolib-creation: no
+
+ignore:
+  - .github
+  - .vscode
+  - tools
+  - docs
+  - .editorconfig
+  - .luacheckrc
+  - .gitignore
+  - CONTRIBUTING.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

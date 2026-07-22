@@ -1,0 +1,18 @@
+# Editor and OS noise
+.vscode/
+.idea/
+*.code-workspace
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Lua language server cache
+.luarc.json.bak
+log/
+
+# Build output
+*.zip
+.release/
+
+# Claude
+./claude

@@ -1,0 +1,56 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  luacheck:
+    name: Luacheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: Install luacheck
+        run: luarocks install luacheck
+
+      - name: Run luacheck
+        run: luacheck .
+
+  toc:
+    name: TOC completeness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A .lua file that isn't listed in the TOC never loads, which is easy to
+      # miss in review and impossible to spot in-game without hunting.
+      - name: Every Lua file is in the TOC, and every TOC entry exists
+        shell: bash
+        run: |
+          status=0
+          listed=$(grep -oiE '^[A-Za-z0-9_/-]+\.lua' StatPanel.toc | tr -d '\r')
+
+          for file in $listed; do
+            if [ ! -f "$file" ]; then
+              echo "::error file=StatPanel.toc::TOC lists '$file' but it does not exist"
+              status=1
+            fi
+          done
+
+          for file in *.lua; do
+            if ! echo "$listed" | grep -qxF "$file"; then
+              echo "::error file=$file::'$file' is not listed in StatPanel.toc and will never load"
+              status=1
+            fi
+          done
+
+          [ $status -eq 0 ] && echo "All Lua files are accounted for."
+          exit $status

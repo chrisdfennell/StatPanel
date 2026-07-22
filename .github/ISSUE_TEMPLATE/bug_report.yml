@@ -1,0 +1,77 @@
+name: Bug report
+description: Something is broken or throwing errors
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The **full text of the error** is the single most useful thing you can
+        give us. A line number on its own usually isn't enough to find the
+        cause, and the first line of the message is often the whole answer.
+
+        If errors are scrolling too fast to copy, an addon like BugSack or
+        BugGrabber will capture them for you.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error text
+      description: Paste the complete error, including the stack and locals if shown.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      description: What were you doing when it happened?
+      placeholder: |
+        1. Applied the "Classic Text" preset
+        2. Entered a raid
+        3. Errors started appearing
+    validations:
+      required: false
+
+  - type: input
+    id: addon-version
+    attributes:
+      label: StatPanel version
+      placeholder: "2.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: wow-version
+    attributes:
+      label: Game version
+      placeholder: "12.0.5 retail"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: isolated
+    attributes:
+      label: Does it still happen with only StatPanel enabled?
+      options:
+        - "Yes, StatPanel alone"
+        - "No, only with other addons loaded"
+        - "I haven't tested that"
+    validations:
+      required: true
+
+  - type: textarea
+    id: other-addons
+    attributes:
+      label: Other addons
+      description: Especially UI replacements such as ElvUI, or anything providing LibSharedMedia.
+    validations:
+      required: false

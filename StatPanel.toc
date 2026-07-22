@@ -1,10 +1,28 @@
-## Interface: 110005
+## Interface: 120007
 ## Title: StatPanel
-## Notes: Displays Secondary Stats and FPS
+## Notes: Fully customizable secondary stat, speed and FPS display
 ## Author: Fennell
-## Version: 1.0
+## Version: 2.0.0
 ## SavedVariables: SPAddonDB
+## OptionalDeps: LibSharedMedia-3.0, LibDataBroker-1.1, LibDBIcon-1.0
+## IconTexture: Interface\Icons\INV_Misc_Gear_01
+## Category: Combat
+## X-License: MIT
+## X-Website: https://github.com/chrisdfennell/StatPanel
+# The release workflow reads these to know where to upload. Uncomment and fill
+# in a line once the project exists on that site.
+## X-Curse-Project-ID: 1122269
+# ## X-Wago-ID: 000000
 
-Options.lua
+Media.lua
+Config.lua
+Presets.lua
+Widgets.lua
 StatPanel.lua
+Gear.lua
+Announce.lua
+AutoProfile.lua
+Menu.lua
+Broker.lua
+Options.lua
 SPMain.lua
