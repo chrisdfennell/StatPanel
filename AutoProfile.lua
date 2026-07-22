@@ -22,13 +22,30 @@ local CONTEXT_FROM_INSTANCE = {
     scenario = "scenario",
 }
 
+-- Delves and Mythic+ keys are not their own instance types - a delve reports as
+-- a scenario and a key reports as a party dungeon, exactly like their untimed
+-- counterparts. The difficulty ID is the only thing that separates them.
+-- From the DifficultyID table: 208 is "Delves", 8 is "Mythic Keystone".
+local DIFFICULTY_DELVE           = 208
+local DIFFICULTY_MYTHIC_KEYSTONE = 8
+
+-- A specific context falls back to its general one, so somebody who already had
+-- a "Dungeon" rule before these existed still gets that profile inside a key
+-- unless they deliberately set a different rule for Mythic+.
+local CONTEXT_FALLBACK = {
+    delve      = "scenario",
+    mythicplus = "dungeon",
+}
+
 AutoProfile.contexts = {
-    { name = "Open world",   value = "world" },
-    { name = "Dungeon",      value = "dungeon" },
-    { name = "Raid",         value = "raid" },
-    { name = "Arena",        value = "arena" },
-    { name = "Battleground", value = "battleground" },
-    { name = "Scenario",     value = "scenario" },
+    { name = "Open world",      value = "world" },
+    { name = "Delve",           value = "delve" },
+    { name = "Dungeon",         value = "dungeon" },
+    { name = "Mythic+ dungeon", value = "mythicplus" },
+    { name = "Raid",            value = "raid" },
+    { name = "Arena",           value = "arena" },
+    { name = "Battleground",    value = "battleground" },
+    { name = "Scenario",        value = "scenario" },
 }
 
 --------------------------------------------------------------------------------
@@ -55,6 +72,15 @@ end
 function AutoProfile:CurrentContext()
     local inInstance, instanceType = IsInInstance()
     if not inInstance then return "world" end
+
+    local difficultyID = select(3, GetInstanceInfo())
+    if instanceType == "scenario" and difficultyID == DIFFICULTY_DELVE then
+        return "delve"
+    end
+    if instanceType == "party" and difficultyID == DIFFICULTY_MYTHIC_KEYSTONE then
+        return "mythicplus"
+    end
+
     return CONTEXT_FROM_INSTANCE[instanceType] or "world"
 end
 
@@ -64,9 +90,15 @@ function AutoProfile:Resolve()
     if not settings.enabled then return nil end
 
     -- Context first: where you are is a stronger signal than what you are.
-    local contextProfile = settings.byContext[self:CurrentContext()]
-    if contextProfile and SPAddonDB.profiles[contextProfile] then
-        return contextProfile, "context"
+    -- Walk from the most specific context to its general one, so a Mythic+ rule
+    -- wins inside a key but a plain Dungeon rule still applies without one.
+    local context = self:CurrentContext()
+    while context do
+        local contextProfile = settings.byContext[context]
+        if contextProfile and SPAddonDB.profiles[contextProfile] then
+            return contextProfile, "context"
+        end
+        context = CONTEXT_FALLBACK[context]
     end
 
     local _, _, specID = SP:GetCurrentPriority()

@@ -5,6 +5,44 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.2] - 2026-07-22
+
+### Fixed
+
+- **Announcing your speed never announced it.** The *Include peak speed* option
+  called `SP.GetPeakSpeed`, which was never defined anywhere — the call
+  short-circuited to nil and the field was dropped from the message with no
+  error and nothing to indicate the setting did nothing. Speed is one of the
+  few figures patch 12.0 does *not* protect, so it should always have been
+  getting through. The accessor now exists.
+- **The addon memory readout was the most expensive thing on the panel.**
+  `UpdateAddOnMemoryUsage()` re-tallies memory for every loaded addon, not just
+  this one, and it was being called from the footer build — which runs on the
+  update loop, ten times a second at the default interval. It is now sampled
+  every five seconds and reused in between. This only affected the footer's
+  *Addon memory use* option, which is off by default.
+
+### Added
+
+- **Delve and Mythic+ dungeon rules for automatic profile switching.** Neither
+  is its own instance type — a delve reports as a scenario and a key reports as
+  an ordinary party dungeon — so both were previously indistinguishable from
+  their untimed counterparts and fell into the generic rule. They are now told
+  apart by difficulty and can carry their own profile. A specific rule falls
+  back to its general one, so an existing *Dungeon* rule still applies inside a
+  key unless you deliberately set a separate *Mythic+ dungeon* rule.
+
+### Changed
+
+- The LibDataBroker feed refreshed its text from an `OnUpdate` handler that ran
+  every frame purely to discover it had nothing to do. It uses `C_Timer` now,
+  and can no longer be started twice.
+- `resolvePrimary` picks the largest of Strength / Agility / Intellect, which is
+  a comparison — forbidden on a secret value, and the one read in the file that
+  was not guarded against becoming one. Primary stats are readable today; if a
+  patch ever protects them the row now displays under its own label instead of
+  erroring and taking the panel down with it.
+
 ## [2.0.1] - 2026-07-21
 
 ### Fixed

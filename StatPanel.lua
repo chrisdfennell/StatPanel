@@ -108,6 +108,10 @@ end
 
 SP.ResetPeakSpeed = function() sessionPeakSpeed = 0 end
 
+-- The peak is a plain number we derived ourselves, never a secret, so unlike
+-- most stats it is safe to hand to chat. Announce.lua reads it through here.
+SP.GetPeakSpeed = function() return sessionPeakSpeed end
+
 --------------------------------------------------------------------------------
 -- ARMOR
 --------------------------------------------------------------------------------
@@ -162,10 +166,17 @@ local function primaryStat(index)
 end
 
 -- Whichever of Strength/Agility/Intellect the character actually scales with.
+--
+-- Picking the largest is a comparison, which is forbidden on a secret value.
+-- Primary stats are readable today, but every other read in this file is
+-- guarded and this one should be too: if a patch ever protects them, return the
+-- value unnamed so the row still displays under its own label rather than
+-- erroring and taking the whole panel down.
 local function resolvePrimary()
     local best, bestIndex = -1, 1
     for _, index in ipairs({ 1, 2, 4 }) do
         local value = select(2, UnitStat("player", index)) or 0
+        if isSecret(value) then return value, nil end
         if value > best then best, bestIndex = value, index end
     end
     return best, bestIndex
@@ -178,7 +189,9 @@ local STAT_DEFS = {
         name = "Primary",
         get = function()
             local value, index = resolvePrimary()
-            return value, value, PRIMARY_NAME[index]
+            -- No index means the attribute couldn't be identified; the row
+            -- falls back to its own label rather than naming the wrong stat.
+            return value, value, index and PRIMARY_NAME[index]
         end,
     },
     Strength  = { name = "Strength",  get = function() return primaryStat(1) end },
@@ -1314,6 +1327,24 @@ function Panel:UpdateTitle()
     frame.title:SetFormattedText(fmt, unpack(args, 1, #order))
 end
 
+-- UpdateAddOnMemoryUsage() re-tallies memory for *every* loaded addon, not just
+-- this one. BuildFooter runs from the update loop, so at the default 0.1s
+-- interval that was firing ten times a second - easily the most expensive thing
+-- the panel did, and on a busy addon list it is measurable. The number barely
+-- moves between frames, so sample it a few seconds apart and reuse it.
+local MEMORY_SAMPLE_INTERVAL = 5
+local memoryKB, lastMemorySample = 0, 0
+
+local function GetMemoryKB()
+    local now = GetTime()
+    if now - lastMemorySample >= MEMORY_SAMPLE_INTERVAL then
+        lastMemorySample = now
+        UpdateAddOnMemoryUsage()
+        memoryKB = GetAddOnMemoryUsage(addonName) or 0
+    end
+    return memoryKB
+end
+
 -- Picks good/ok/bad coloring for a performance number.
 local function qualityColor(value, good, bad, higherIsBetter)
     local footer = SP.db.footer
@@ -1364,9 +1395,7 @@ function Panel:BuildFooter()
     end
 
     if footer.showMemory then
-        UpdateAddOnMemoryUsage()
-        local kb = GetAddOnMemoryUsage(addonName) or 0
-        add(string.format(footer.memoryFormat or "%.1f mb", kb / 1024))
+        add(string.format(footer.memoryFormat or "%.1f mb", GetMemoryKB() / 1024))
     end
 
     return table.concat(parts, footer.separator or "  |  ")
