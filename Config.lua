@@ -361,13 +361,34 @@ end
 
 -- Points SP.db at a profile and makes sure it has every key the current
 -- version of the addon expects.
+-- Visibility rules that cover opposite states. With both halves of a pair set,
+-- ShouldShow() is false in every state and the panel simply never appears --
+-- no error, and nothing on screen to say which setting did it. The options UI
+-- refuses to create the combination, but an imported string, a hand-edited
+-- SavedVariables or a v1 profile can still carry it, so repair it on the way in.
+local EXCLUSIVE_VISIBILITY = {
+    { "hideInCombat", "onlyInCombat" },
+    { "hideInInstance", "hideOutOfInstance" },
+}
+
+local function repairVisibility(panel)
+    if type(panel) ~= "table" then return end
+    for _, pair in ipairs(EXCLUSIVE_VISIBILITY) do
+        -- Which half survives is arbitrary; a visible panel beats an invisible
+        -- one, and keeping the first leaves the more common rule in place.
+        if panel[pair[1]] and panel[pair[2]] then panel[pair[2]] = false end
+    end
+end
+
 function Config:Activate(name)
     local db = SPAddonDB
     if not db.profiles[name] then name = "Default" end
 
     db.chars[charKey()] = name
     self.current = name
+    -- fillDefaults returns the stored profile itself, so the repair persists.
     SP.db = fillDefaults(db.profiles[name], DEFAULTS)
+    repairVisibility(SP.db.panel)
     return SP.db
 end
 
