@@ -102,6 +102,10 @@ jobs:
         with:
           name: StatPanel-package
           path: .release/*.zip
+          # The packager builds into .release, and upload-artifact treats
+          # anything under a dot-directory as hidden and skips it. Without
+          # this the step finds no files and the upload is empty.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
 
