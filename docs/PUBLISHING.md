@@ -12,14 +12,27 @@ git push origin v2.0.0
 
 That is the whole process. The `Release` workflow then:
 
-1. Builds `StatPanel-2.0.0.zip` with the correct internal folder structure
-2. Creates a GitHub release and attaches the zip
-3. Uploads to CurseForge, Wago and WoWInterface — for each one you have added a
+1. Checks the tag against the `## Version:` field in `StatPanel.toc`, and stops
+   before building if they disagree
+2. Builds `StatPanel-2.0.0.zip` with the correct internal folder structure
+3. Creates a GitHub release and attaches the zip
+4. Uploads to CurseForge, Wago and WoWInterface — for each one you have added a
    token for; the rest are skipped silently
-4. Prints the zip's file list to the run summary so you can see what shipped
+5. Prints the zip's file list to the run summary so you can see what shipped
 
-Tag names should match the `## Version:` field in `StatPanel.toc`. Update the
-TOC version and `CHANGELOG.md` in the same commit you tag.
+Tag names must match the `## Version:` field in `StatPanel.toc` — the packager
+takes the version from the tag but never rewrites that line, so a mismatch would
+otherwise ship an addon that reports the wrong version in-game. Update the TOC
+version and `CHANGELOG.md` in the same commit you tag. A missing `CHANGELOG.md`
+entry is only a warning, not a failure.
+
+If the check does fail, fix the TOC and move the tag:
+
+```powershell
+git tag -d v2.1.0
+git push origin :refs/tags/v2.1.0
+# commit the TOC fix, then re-tag
+```
 
 ### Testing without publishing
 
@@ -113,7 +126,8 @@ unpack loose into the AddOns folder.
 
 ## Release checklist
 
-- [ ] `## Version:` in the TOC matches the tag you are about to push
+- [ ] `## Version:` in the TOC matches the tag you are about to push (enforced
+      by the workflow, but checking first saves deleting a bad tag)
 - [ ] `## Interface:` matches the current live patch
 - [ ] `CHANGELOG.md` has an entry for this version
 - [ ] Dry run produced a zip with the expected contents
