@@ -85,12 +85,16 @@ jobs:
       - name: Build the addon package
         uses: BigWigsMods/packager@v2
         env:
-          # Provided automatically by GitHub; creates the release and attaches
-          # the zip to it.
-          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # These names are what release.sh actually reads - the action is a
+          # composite that passes env straight through without mapping it, and
+          # an unrecognised name leaves the token empty. Every upload function
+          # returns 0 when its token is empty, so a wrong name here publishes
+          # nothing and still reports success. Do not rename these to match
+          # the secret names.
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_TOKEN }}
           # Optional. Add these as repository secrets to enable each upload.
           # A missing token simply means that site is skipped.
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
           WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
         with:
@@ -108,6 +112,21 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
+
+      # The packager skips an upload silently and exits 0 when a token is
+      # empty, so "the workflow was green" is not evidence anything shipped.
+      # On a tag, prove the release exists rather than assuming it.
+      - name: Confirm the release was published
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Packaging succeeded but no $GITHUB_REF_NAME release exists. The packager reads GITHUB_OAUTH and CF_API_KEY - if those env names are wrong it uploads nothing and still exits 0."
+            exit 1
+          fi
+          echo "Release $GITHUB_REF_NAME is published."
 
       - name: Summarize what was built
         if: always()
