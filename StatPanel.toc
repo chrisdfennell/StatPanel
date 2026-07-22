@@ -9,8 +9,6 @@
 ## Category: Combat
 ## X-License: MIT
 ## X-Website: https://github.com/chrisdfennell/StatPanel
-# The release workflow reads these to know where to upload. Uncomment and fill
-# in a line once the project exists on that site.
 ## X-Curse-Project-ID: 1122269
 ## X-Wago-ID: 96d2OlGO
 
