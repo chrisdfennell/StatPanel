@@ -61,7 +61,7 @@ read_globals = {
     "GetMasteryEffect", "GetDodgeChance", "GetParryChance", "GetBlockChance",
     "GetLifesteal", "GetAvoidance", "GetSpellCritChance",
     "GetAverageItemLevel", "GetUnitSpeed", "GetRealmName",
-    "IsInInstance", "IsInGroup", "IsInRaid", "IsInGuild",
+    "IsInInstance", "GetInstanceInfo", "IsInGroup", "IsInRaid", "IsInGuild",
     "IsPlayerMoving", "IsFlying",
 
     -- Items

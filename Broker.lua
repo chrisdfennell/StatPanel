@@ -185,18 +185,19 @@ function Broker:SetHidden(hidden)
     self:ApplyVisibility()
 end
 
--- Refreshes the broker text once a second. Cheap, and only matters when a
--- display addon is actually showing it.
+-- Refreshes the broker text once a second, and only when LibDataBroker is
+-- present to consume it.
+--
+-- This used to be an OnUpdate frame accumulating its own elapsed time, which
+-- means a Lua call every single frame to discover that it has nothing to do
+-- 59 times out of 60. C_Timer does the same job in C, and costs nothing
+-- between ticks.
+local ticker
+
 function Broker:StartTicker()
-    if not dataObject then return end
+    if not dataObject or ticker then return end
 
-    local ticker = CreateFrame("Frame")
-    local elapsed = 0
-    ticker:SetScript("OnUpdate", function(_, dt)
-        elapsed = elapsed + dt
-        if elapsed < 1 then return end
-        elapsed = 0
-
+    ticker = C_Timer.NewTicker(1, function()
         local _, equipped = GetAverageItemLevel()
         local fps = GetFramerate() or 0
 
