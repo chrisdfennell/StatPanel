@@ -1,10 +1,21 @@
-## Interface: 110005
+## Interface: 120000
 ## Title: StatPanel
-## Notes: Displays Secondary Stats and FPS
+## Notes: Fully customizable secondary stat, speed and FPS display
 ## Author: Fennell
-## Version: 1.0
+## Version: 2.0
 ## SavedVariables: SPAddonDB
+## OptionalDeps: LibSharedMedia-3.0
+## IconTexture: Interface\Icons\INV_Misc_Gear_01
 
-Options.lua
+Media.lua
+Config.lua
+Presets.lua
+Widgets.lua
 StatPanel.lua
+Gear.lua
+Announce.lua
+AutoProfile.lua
+Menu.lua
+Broker.lua
+Options.lua
 SPMain.lua
