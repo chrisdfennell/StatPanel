@@ -5,6 +5,21 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-07-22
+
+### Added
+
+- **Paste a stat weight string to set your priority.** Options → Priority has a
+  new box that takes a Pawn string -- from Raidbots, a sim, or a stat site -- or
+  a plain order like `Mastery > Haste > Crit > Versatility`, and sets the
+  priority for your current specialization. It reads the four secondaries,
+  orders them by weight (or takes the order as written) and fills in any it
+  doesn't see, so the result is always a complete order. The built-in table is a
+  general baseline that drifts with the meta and can't know your gear; this is
+  the authoritative-for-your-character answer, for any spec, from whatever
+  source you trust. It writes the same per-spec override the dropdowns do, so
+  "Use the built-in order" still resets it.
+
 ## [2.0.3] - 2026-07-22
 
 ### Fixed
