@@ -117,6 +117,9 @@ function Announce:Build()
                 issues[#issues + 1] = audit.emptySockets .. " empty socket"
                     .. (audit.emptySockets == 1 and "" or "s")
             end
+            if audit.tierCount then
+                parts[#parts + 1] = string.format("%d/%d tier set", audit.tierCount, audit.tierTotal)
+            end
             if #issues > 0 then
                 parts[#parts + 1] = table.concat(issues, ", ")
             end

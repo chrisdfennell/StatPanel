@@ -52,6 +52,7 @@ read_globals = {
     -- Namespaced APIs
     "C_Timer", "C_PlayerInfo", "C_PetBattles", "C_SpecializationInfo",
     "C_Item", "C_ChatInfo", "C_AddOns", "C_PaperDollInfo",
+    "C_TooltipInfo", "TooltipUtil",
 
     -- Character and stats
     "UnitName", "UnitClass", "UnitLevel", "UnitExists", "UnitArmor", "UnitStat",
@@ -65,7 +66,7 @@ read_globals = {
     "IsPlayerMoving", "IsFlying",
 
     -- Items
-    "GetInventoryItemLink", "GetItemStats", "GetDetailedItemLevelInfo",
+    "GetInventoryItemLink", "GetInventoryItemID", "GetItemStats", "GetDetailedItemLevelInfo",
 
     -- Chat and performance
     "SendChatMessage", "GetFramerate", "GetNetStats",

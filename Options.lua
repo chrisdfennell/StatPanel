@@ -1130,8 +1130,10 @@ local function buildGear(content, stack)
         local audit = SP.Gear:Audit()
 
         local warning = SP.Gear:WarningText()
-        summary.text:SetText(string.format("Average equipped item level %.2f.  %s",
-            audit.average, warning or "Nothing missing."))
+        local tier = audit.tierCount
+            and string.format("  Tier set %d/%d.", audit.tierCount, audit.tierTotal) or ""
+        summary.text:SetText(string.format("Average equipped item level %.2f.%s  %s",
+            audit.average, tier, warning or "Nothing missing."))
 
         for _, row in ipairs(list.rows) do row:Hide() end
 
@@ -1176,9 +1178,18 @@ local function buildGear(content, stack)
                 if slot.emptySockets > 0 then
                     notes[#notes + 1] = slot.emptySockets .. " empty socket"
                 end
+                if slot.lowGems > 0 then
+                    notes[#notes + 1] = slot.lowGems .. " rare gem"
+                end
+
+                local track = ""
+                if slot.upgradeTrack and slot.upgradeCur and slot.upgradeMax then
+                    track = string.format("   %s %d/%d",
+                        slot.upgradeTrack, slot.upgradeCur, slot.upgradeMax)
+                end
 
                 local isLowest = audit.lowest and slot.id == audit.lowest.id
-                row.info:SetText(string.format("%d%s%s", slot.itemLevel,
+                row.info:SetText(string.format("%d%s%s%s", slot.itemLevel, track,
                     #notes > 0 and ("   " .. table.concat(notes, ", ")) or "",
                     isLowest and "   (lowest)" or ""))
 

@@ -5,6 +5,26 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.0] - 2026-07-23
+
+### Added
+
+- **Deeper gear audit.** `/sp gear`, the Gear options page and the chat announce
+  now report more than enchants and sockets:
+  - **Tier set count** — how many class set pieces you have equipped, e.g.
+    `4/5`. Counted through the current set-bonus API, so Catalyst-made pieces
+    count the same as drops.
+  - **Upgrade track and progress** per slot — `Champion 6/8`, dimmed once a slot
+    is maxed — plus a tally of items not yet fully upgraded. There is no API for
+    an equipped item's track, so this is read from the item tooltip: best-effort
+    on English clients, and quietly omitted rather than guessed elsewhere.
+  - **Below-Epic gems** — a rare gem sitting in an epic item is flagged like a
+    missing enchant, since it's an easily-forgotten upgrade.
+
+  Enchant *rank* and embellishment detection were left out on purpose: both need
+  a per-season maintained table or fragile tooltip matching, and would quietly
+  rot between patches rather than fail loudly.
+
 ## [2.1.1] - 2026-07-23
 
 ### Fixed
