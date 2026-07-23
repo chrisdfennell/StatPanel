@@ -341,6 +341,81 @@ function SP:GetCurrentPriority()
     return custom or NS.StatPriority[specID] or DEFAULT_PRIORITY, specName, specID
 end
 
+-- Maps the many spellings of a secondary stat -- Pawn's rating keys, sim output,
+-- and how a person would just type it -- onto our four canonical keys. The key
+-- is lowercased with every non-letter stripped, so "Critical Strike",
+-- "CritRating" and "crit" all land together.
+local SECONDARY_ALIAS = {
+    crit = "Crit", critical = "Crit", criticalstrike = "Crit", critrating = "Crit", critstrike = "Crit",
+    haste = "Haste", hasterating = "Haste",
+    mastery = "Mastery", masteryrating = "Mastery",
+    vers = "Versatility", versatility = "Versatility", versatilityrating = "Versatility",
+    versa = "Versatility",
+}
+local SECONDARY_CANON = { "Crit", "Haste", "Mastery", "Versatility" }
+
+local function aliasOf(word)
+    return SECONDARY_ALIAS[(word:lower():gsub("[^%a]", ""))]
+end
+
+-- Turns a pasted stat-weight string into a full four-stat priority order, or
+-- nil plus a reason. Accepts two shapes:
+--   * a weight string -- Pawn ("... CritRating=1.2, MasteryRating=1.5 ...") or
+--     any "stat = number" list from a sim or stat site -- ordered by descending
+--     weight;
+--   * a plain order -- "Mastery > Haste > Crit > Vers", commas or spaces too.
+-- Any secondary the string omits is appended in canonical order, so the result
+-- is always a valid permutation the priority line and dropdowns can consume.
+function SP:ParsePriorityString(text)
+    if type(text) ~= "string" or strtrim(text) == "" then
+        return nil, "Paste a Pawn string or a stat order first."
+    end
+
+    -- Weight form: only trust it when the text actually assigns numbers, so a
+    -- half-typed Pawn string falls through to an error rather than being read as
+    -- a bare word list in file order.
+    if text:find("=") then
+        local weights, found = {}, 0
+        for key, value in text:gmatch("(%a+)%s*=%s*(%-?%d*%.?%d+)") do
+            local stat, n = aliasOf(key), tonumber(value)
+            if stat and n and not weights[stat] then
+                weights[stat] = n
+                found = found + 1
+            end
+        end
+        if found < 2 then
+            return nil, "Couldn't read at least two secondary-stat weights from that string."
+        end
+
+        local order = {}
+        for _, stat in ipairs(SECONDARY_CANON) do
+            if weights[stat] then order[#order + 1] = stat end
+        end
+        table.sort(order, function(a, b) return weights[a] > weights[b] end)
+        for _, stat in ipairs(SECONDARY_CANON) do
+            if not weights[stat] then order[#order + 1] = stat end
+        end
+        return order
+    end
+
+    -- Plain-order form: take the secondaries in the order they appear.
+    local order, seen = {}, {}
+    for word in text:gmatch("%a+") do
+        local stat = aliasOf(word)
+        if stat and not seen[stat] then
+            seen[stat] = true
+            order[#order + 1] = stat
+        end
+    end
+    if #order < 2 then
+        return nil, "Couldn't find a stat order in that text. Try 'Mastery > Haste > Crit > Vers'."
+    end
+    for _, stat in ipairs(SECONDARY_CANON) do
+        if not seen[stat] then order[#order + 1] = stat end
+    end
+    return order
+end
+
 --------------------------------------------------------------------------------
 -- FORMATTING
 --------------------------------------------------------------------------------

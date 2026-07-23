@@ -2,7 +2,7 @@
 ## Title: StatPanel
 ## Notes: Fully customizable secondary stat, speed and FPS display
 ## Author: Fennell
-## Version: 2.0.3
+## Version: 2.1.0
 ## SavedVariables: SPAddonDB
 ## OptionalDeps: LibSharedMedia-3.0, LibDataBroker-1.1, LibDBIcon-1.0
 ## IconTexture: Interface\Icons\INV_Misc_Gear_01

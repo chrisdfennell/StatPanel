@@ -29,7 +29,8 @@ item level in the title, session speed peak, and framerate with both latencies.*
 - Auto-sizing width, or a fixed width you choose
 
 **Stats**
-- Crit, Haste, Mastery, Versatility ordered by your spec's priority
+- Crit, Haste, Mastery, Versatility ordered by your spec's priority — from a
+  built-in baseline, or paste a Pawn / sim weight string for your exact order
 - Armor damage reduction, Dodge, Parry, Block
 - Leech, Avoidance, Movement speed with a session peak
 - Strength / Agility / Intellect / Stamina, plus a "Primary" row that resolves
@@ -74,6 +75,7 @@ embedded and nothing is required.
 | Try a different look | Options → **Presets** |
 | Move the panel | Drag it (untick **Lock position** first) |
 | Quick toggles | Right-click the panel |
+| Match a sim's stat priority | Options → **Priority**, paste a Pawn string |
 | Check your enchants | `/sp gear` |
 
 ### Presets

@@ -810,6 +810,8 @@ end
 local SECONDARY = { "Crit", "Haste", "Mastery", "Versatility" }
 
 local function buildPriority(content, stack)
+    local weightText = ""  -- the pasted weight/order box
+
     stack:Add(UI:Header(content, "Priority line"))
 
     stack:Add(UI:Check(content, { label = "Show the priority chain", path = "priorityLine.enabled" }))
@@ -875,6 +877,42 @@ local function buildPriority(content, stack)
         }))
     end
 
+    stack:Gap(10)
+    stack:Add(UI:Header(content, "Paste a stat weight string"))
+    stack:Add(UI:Note(content, "Paste a Pawn string (from Raidbots, a sim, or a stat site) or a plain order like 'Mastery > Haste > Crit > Versatility'. StatPanel reads the four secondaries and sets the order for your current spec."))
+
+    local weightBox = UI:EditBox(content, {
+        label = "Weights or order",
+        multiline = true,
+        manualCommit = true,
+        get = function() return weightText end,
+        set = function(value) weightText = value end,
+    })
+    stack:Add(weightBox)
+
+    stack:Add(UI:ButtonRow(content, {
+        { text = "Apply pasted weights", width = 180, onClick = function()
+            local _, specName, specID = SP:GetCurrentPriority()
+            if not specID then
+                SP:Print("no active specialization to apply to.")
+                return
+            end
+            local order, err = SP:ParsePriorityString(weightBox.edit:GetText())
+            if not order then
+                SP:Print(err)
+                return
+            end
+            SP.db.customPriority[specID] = order
+            weightBox.edit:SetText("")
+            weightText = ""
+            SP:Print(string.format("priority for %s set to %s.",
+                specName or "your spec", table.concat(order, " > ")))
+            SP:Refresh()
+            UI:RefreshAll()
+        end },
+    }))
+
+    stack:Gap(10)
     stack:Add(UI:ButtonRow(content, {
         { text = "Use the built-in order", width = 170, onClick = function()
             local _, _, specID = SP:GetCurrentPriority()
