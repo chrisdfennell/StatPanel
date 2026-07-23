@@ -15,6 +15,7 @@
 -- itself, because nobody wants an addon spamming their raid chat.
 
 local addonName, SP = ...
+local L = SP.L
 
 local Announce = {}
 SP.Announce = Announce
@@ -25,15 +26,15 @@ local warnedAboutSecrets = false
 
 -- "SELF" isn't a real chat type; it prints locally so you can preview.
 Announce.channels = {
-    { name = "Print to my chat only", value = "SELF" },
-    { name = "Say",      value = "SAY" },
-    { name = "Party",    value = "PARTY" },
-    { name = "Raid",     value = "RAID" },
-    { name = "Instance", value = "INSTANCE_CHAT" },
-    { name = "Guild",    value = "GUILD" },
-    { name = "Officer",  value = "OFFICER" },
-    { name = "Yell",     value = "YELL" },
-    { name = "Whisper",  value = "WHISPER" },
+    { name = L["Print to my chat only"], value = "SELF" },
+    { name = L["Say"],      value = "SAY" },
+    { name = L["Party"],    value = "PARTY" },
+    { name = L["Raid"],     value = "RAID" },
+    { name = L["Instance"], value = "INSTANCE_CHAT" },
+    { name = L["Guild"],    value = "GUILD" },
+    { name = L["Officer"],  value = "OFFICER" },
+    { name = L["Yell"],     value = "YELL" },
+    { name = L["Whisper"],  value = "WHISPER" },
 }
 
 --------------------------------------------------------------------------------
@@ -138,11 +139,11 @@ end
 --------------------------------------------------------------------------------
 local function channelAvailable(channel)
     if channel == "PARTY" or channel == "INSTANCE_CHAT" then
-        return IsInGroup(), "You aren't in a group."
+        return IsInGroup(), L["You aren't in a group."]
     elseif channel == "RAID" then
-        return IsInRaid(), "You aren't in a raid."
+        return IsInRaid(), L["You aren't in a raid."]
     elseif channel == "GUILD" or channel == "OFFICER" then
-        return IsInGuild(), "You aren't in a guild."
+        return IsInGuild(), L["You aren't in a guild."]
     end
     return true
 end
@@ -152,22 +153,22 @@ function Announce:Send(channel, target)
 
     local now = GetTime()
     if channel ~= "SELF" and (now - lastSent) < THROTTLE_SECONDS then
-        SP:Print(string.format("hold on - you can announce again in %.0f seconds.",
+        SP:Print(string.format(L["hold on - you can announce again in %.0f seconds."],
             THROTTLE_SECONDS - (now - lastSent)))
         return false
     end
 
     local message, dropped = self:Build()
     if not message then
-        SP:Print("nothing to announce - enable some fields on the Announce page.")
+        SP:Print(L["nothing to announce - enable some fields on the Announce page."])
         return false
     end
 
     -- Explain the omission once per session rather than on every announce.
     if dropped > 0 and not warnedAboutSecrets then
         warnedAboutSecrets = true
-        SP:Print(("%d value%s left out: the game protects those stats, so they cannot be sent to chat.")
-            :format(dropped, dropped == 1 and " was" or "s were"))
+        SP:Print(L["%d value(s) left out: the game protects those stats, so they cannot be sent to chat."]
+            :format(dropped))
     end
 
     if channel == "SELF" then
@@ -177,7 +178,7 @@ function Announce:Send(channel, target)
 
     local ok, err = channelAvailable(channel)
     if not ok then
-        SP:Print(err .. " Showing it here instead:")
+        SP:Print(err .. " " .. L["Showing it here instead:"])
         SP:Print(message)
         return false
     end
@@ -185,7 +186,7 @@ function Announce:Send(channel, target)
     if channel == "WHISPER" then
         target = target and target:trim() or ""
         if target == "" then
-            SP:Print("whisper needs a name: /sp announce whisper <name>")
+            SP:Print(L["whisper needs a name: /sp announce whisper <name>"])
             return false
         end
     end
@@ -194,7 +195,7 @@ function Announce:Send(channel, target)
     -- call is guarded and falls back to a local print.
     local sent = pcall(SendChatMessage, message, channel, nil, target)
     if not sent then
-        SP:Print("the game refused to send that message. Showing it here instead:")
+        SP:Print(L["the game refused to send that message. Showing it here instead:"])
         SP:Print(message)
         return false
     end
