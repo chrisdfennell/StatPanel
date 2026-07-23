@@ -922,8 +922,9 @@ end
 -- PAGE: PROFILES
 --------------------------------------------------------------------------------
 local function buildProfiles(content, stack)
-    local newName = ""
-    local importText = ""
+    local newName = ""       -- "New profile name" box
+    local importText = ""    -- the pasted import-string box
+    local importTarget = ""  -- "Import into profile" name box
 
     stack:Add(UI:Header(content, "Profile"))
     stack:Add(UI:Note(content, "Each character remembers which profile it uses, so you can share one look across alts or give each its own."))
@@ -1007,13 +1008,13 @@ local function buildProfiles(content, stack)
 
     stack:Add(UI:EditBox(content, {
         label = "Import into profile (blank = active)",
-        get = function() return importText end,
-        set = function(value) importText = value end,
+        get = function() return importTarget end,
+        set = function(value) importTarget = value end,
     }))
 
     stack:Add(UI:ButtonRow(content, {
         { text = "Import", width = 120, onClick = function()
-            local name, err = Config:Import(importBox.edit:GetText(), importText)
+            local name, err = Config:Import(importBox.edit:GetText(), importTarget)
             if name then
                 SP:Print("Imported into profile '" .. name .. "'.")
                 importBox.edit:SetText("")
