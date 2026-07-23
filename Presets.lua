@@ -876,10 +876,45 @@ local function overlay(dst, src)
     end
 end
 
+-- Panel keys that are the user's context, not the preset's look: where the
+-- window sits, how it stacks and behaves, and when it is allowed to show. A
+-- preset switch must leave every one of these alone. Everything else under
+-- `panel` (colors, sizes, title, borders) is look and gets reset.
+local PRESERVE_PANEL = {
+    pos = true, locked = true, clamp = true, strata = true, frameLevel = true,
+    tooltips = true,
+    hideInCombat = true, onlyInCombat = true, hideInVehicle = true,
+    hideInPetBattle = true, hideWhenDead = true, hideInInstance = true,
+    hideOutOfInstance = true, mouseoverOnly = true, fadeAlpha = true,
+    fadeDuration = true,
+}
+
+-- A preset is a *sparse* table, so applying one over whatever look was there
+-- before leaves behind any key the new preset doesn't mention -- switch away
+-- from Neon and its spark, fast smoothing and pink crit bar stay. Presets bill
+-- themselves as complete looks, so reset the look to defaults first, preserving
+-- only the user's position, visibility rules and account prefs.
+local function resetLook()
+    local D = SP.Config.DEFAULTS
+    local function dc(v) return SP.Config:DeepCopy(v) end
+
+    for k, v in pairs(D.panel) do
+        if not PRESERVE_PANEL[k] then SP.db.panel[k] = dc(v) end
+    end
+
+    SP.db.bars        = dc(D.bars)
+    SP.db.font        = dc(D.font)
+    SP.db.stats       = dc(D.stats)
+    SP.db.sections    = dc(D.sections)
+    SP.db.footer      = dc(D.footer)
+    SP.db.valueSource = D.valueSource
+end
+
 function Presets:Apply(name)
     local preset = self.list[name]
     if not preset then return false end
 
+    resetLook()
     overlay(SP.db, preset.settings)
 
     -- Sections and per-stat overrides are applied separately: sections replace
@@ -891,7 +926,11 @@ function Presets:Apply(name)
         for statName, override in pairs(preset.stats) do
             SP.db.stats[statName] = SP.db.stats[statName] or {}
             for k, v in pairs(override) do
-                SP.db.stats[statName][k] = v
+                -- Deep-copy: a raw assignment would alias the preset's own color
+                -- table into the profile, so two profiles on the same preset --
+                -- and the in-memory preset itself -- would share one table and
+                -- mutate together.
+                SP.db.stats[statName][k] = SP.Config:DeepCopy(v)
             end
         end
     end
