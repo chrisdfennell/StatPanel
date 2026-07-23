@@ -25,6 +25,17 @@ of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a per-season maintained table or fragile tooltip matching, and would quietly
   rot between patches rather than fail loudly.
 
+## [2.1.1] - 2026-07-23
+
+### Fixed
+
+- **The live preview could appear on login with no options window behind it.**
+  Registering the options canvas at login fires its `OnShow` once, transiently,
+  before the Settings window has ever been opened -- and that started the live
+  preview, leaving the panel docked in a preview box on screen until you opened
+  and closed the options to trigger a real teardown. The preview now starts only
+  when the Settings window is actually open.
+
 ## [2.1.0] - 2026-07-22
 
 ### Added
