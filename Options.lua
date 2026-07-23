@@ -4,6 +4,7 @@
 -- right. Pages are built the first time they're opened so login cost stays low.
 
 local addonName, SP = ...
+local L = SP.L
 
 local UI = SP.UI
 local Config = SP.Config
@@ -25,40 +26,40 @@ local function mediaValues(kind)
 end
 
 local ALIGN_VALUES = {
-    { name = "Left",   value = "LEFT" },
-    { name = "Center", value = "CENTER" },
-    { name = "Right",  value = "RIGHT" },
+    { name = L["Left"],   value = "LEFT" },
+    { name = L["Center"], value = "CENTER" },
+    { name = L["Right"],  value = "RIGHT" },
 }
 
 local FILL_VALUES = {
-    { name = "Proportional to value", value = "value" },
-    { name = "Always full",           value = "full" },
-    { name = "No fill (text only)",   value = "none" },
+    { name = L["Proportional to value"], value = "value" },
+    { name = L["Always full"],           value = "full" },
+    { name = L["No fill (text only)"],   value = "none" },
 }
 
 local COLOR_MODE_VALUES = {
-    { name = "Per-stat colors", value = "stat" },
-    { name = "Class color",     value = "class" },
-    { name = "Single color",    value = "single" },
-    { name = "Value gradient",  value = "gradient" },
+    { name = L["Per-stat colors"], value = "stat" },
+    { name = L["Class color"],     value = "class" },
+    { name = L["Single color"],    value = "single" },
+    { name = L["Value gradient"],  value = "gradient" },
 }
 
 local ROW_STYLE_VALUES = {
-    { name = "Bars",      value = "bar" },
-    { name = "Text only", value = "text" },
+    { name = L["Bars"],      value = "bar" },
+    { name = L["Text only"], value = "text" },
 }
 
 local TITLE_MODE_VALUES = {
-    { name = "Item level", value = "ilvl" },
-    { name = "Player name", value = "name" },
-    { name = "Specialization", value = "spec" },
-    { name = "Custom text", value = "custom" },
-    { name = "Hidden", value = "none" },
+    { name = L["Item level"], value = "ilvl" },
+    { name = L["Player name"], value = "name" },
+    { name = L["Specialization"], value = "spec" },
+    { name = L["Custom text"], value = "custom" },
+    { name = L["Hidden"], value = "none" },
 }
 
 local SOURCE_VALUES = {
-    { name = "Total effect (character sheet)", value = "total" },
-    { name = "Bonus from rating only",         value = "bonus" },
+    { name = L["Total effect (character sheet)"], value = "total" },
+    { name = L["Bonus from rating only"],         value = "bonus" },
 }
 
 local function fontFlagValues()
@@ -82,45 +83,45 @@ end
 -- PAGE: GENERAL
 --------------------------------------------------------------------------------
 local function buildGeneral(content, stack)
-    stack:Add(UI:Header(content, "Panel"))
+    stack:Add(UI:Header(content, L["Panel"]))
 
     stack:Add(UI:Check(content, {
-        label = "Enable StatPanel", path = "enabled",
-        tooltip = "Master switch. Turning this off hides the panel entirely.",
+        label = L["Enable StatPanel"], path = "enabled",
+        tooltip = L["Master switch. Turning this off hides the panel entirely."],
     }))
     stack:Add(UI:Check(content, {
-        label = "Lock position", path = "panel.locked",
-        tooltip = "Stops the panel from being dragged.",
+        label = L["Lock position"], path = "panel.locked",
+        tooltip = L["Stops the panel from being dragged."],
     }))
     stack:Add(UI:Check(content, {
-        label = "Keep on screen", path = "panel.clamp",
-        tooltip = "Prevents dragging the panel off the edge of the screen.",
+        label = L["Keep on screen"], path = "panel.clamp",
+        tooltip = L["Prevents dragging the panel off the edge of the screen."],
     }))
 
     stack:Add(UI:Slider(content, {
-        label = "Scale", path = "panel.scale",
+        label = L["Scale"], path = "panel.scale",
         min = 0.4, max = 3.0, step = 0.05, decimals = 2,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Opacity", path = "panel.alpha",
+        label = L["Opacity"], path = "panel.alpha",
         min = 0, max = 1, step = 0.01, decimals = 2,
     }))
     stack:Add(UI:Dropdown(content, {
-        label = "Frame layer", path = "panel.strata", values = strataValues,
-        tooltip = "Which layer the panel draws on. Raise it if another addon covers the panel.",
+        label = L["Frame layer"], path = "panel.strata", values = strataValues,
+        tooltip = L["Which layer the panel draws on. Raise it if another addon covers the panel."],
     }))
     stack:Add(UI:Slider(content, {
-        label = "Update interval (seconds)", path = "updateInterval",
+        label = L["Update interval (seconds)"], path = "updateInterval",
         min = 0.02, max = 1.0, step = 0.02, decimals = 2,
-        tooltip = "How often values refresh. Higher values use less CPU.",
+        tooltip = L["How often values refresh. Higher values use less CPU."],
     }))
     stack:Add(UI:Dropdown(content, {
-        label = "Stat values show", path = "valueSource", values = SOURCE_VALUES,
-        tooltip = "Total effect matches the character sheet. Bonus from rating shows only what your gear's rating contributes.",
+        label = L["Stat values show"], path = "valueSource", values = SOURCE_VALUES,
+        tooltip = L["Total effect matches the character sheet. Bonus from rating shows only what your gear's rating contributes."],
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Visibility"))
+    stack:Add(UI:Header(content, L["Visibility"]))
 
     -- Two rules covering opposite states hide the panel everywhere, which reads
     -- as the addon being broken rather than as a setting. Ticking one clears
@@ -132,60 +133,60 @@ local function buildGeneral(content, stack)
     end
 
     stack:Add(UI:Check(content, {
-        label = "Hide during combat", path = "panel.hideInCombat",
+        label = L["Hide during combat"], path = "panel.hideInCombat",
         onChange = clears("panel.onlyInCombat"), refreshAll = true,
-        tooltip = "Turning this on clears 'Show only during combat'.",
+        tooltip = L["Turning this on clears 'Show only during combat'."],
     }))
     stack:Add(UI:Check(content, {
-        label = "Show only during combat", path = "panel.onlyInCombat",
+        label = L["Show only during combat"], path = "panel.onlyInCombat",
         onChange = clears("panel.hideInCombat"), refreshAll = true,
-        tooltip = "Turning this on clears 'Hide during combat'.",
+        tooltip = L["Turning this on clears 'Hide during combat'."],
     }))
-    stack:Add(UI:Check(content, { label = "Hide while dead", path = "panel.hideWhenDead" }))
-    stack:Add(UI:Check(content, { label = "Hide in vehicles", path = "panel.hideInVehicle" }))
-    stack:Add(UI:Check(content, { label = "Hide in pet battles", path = "panel.hideInPetBattle" }))
+    stack:Add(UI:Check(content, { label = L["Hide while dead"], path = "panel.hideWhenDead" }))
+    stack:Add(UI:Check(content, { label = L["Hide in vehicles"], path = "panel.hideInVehicle" }))
+    stack:Add(UI:Check(content, { label = L["Hide in pet battles"], path = "panel.hideInPetBattle" }))
     stack:Add(UI:Check(content, {
-        label = "Hide inside instances", path = "panel.hideInInstance",
+        label = L["Hide inside instances"], path = "panel.hideInInstance",
         onChange = clears("panel.hideOutOfInstance"), refreshAll = true,
-        tooltip = "Turning this on clears 'Hide outside instances'.",
+        tooltip = L["Turning this on clears 'Hide outside instances'."],
     }))
     stack:Add(UI:Check(content, {
-        label = "Hide outside instances", path = "panel.hideOutOfInstance",
+        label = L["Hide outside instances"], path = "panel.hideOutOfInstance",
         onChange = clears("panel.hideInInstance"), refreshAll = true,
-        tooltip = "Turning this on clears 'Hide inside instances'.",
+        tooltip = L["Turning this on clears 'Hide inside instances'."],
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Mouseover fade"))
+    stack:Add(UI:Header(content, L["Mouseover fade"]))
 
     stack:Add(UI:Check(content, {
-        label = "Only show on mouseover", path = "panel.mouseoverOnly",
-        tooltip = "Fades the panel out until you hover over it.",
+        label = L["Only show on mouseover"], path = "panel.mouseoverOnly",
+        tooltip = L["Fades the panel out until you hover over it."],
     }))
     stack:Add(UI:Slider(content, {
-        label = "Faded opacity", path = "panel.fadeAlpha",
+        label = L["Faded opacity"], path = "panel.fadeAlpha",
         min = 0, max = 1, step = 0.01, decimals = 2,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Fade duration (seconds)", path = "panel.fadeDuration",
+        label = L["Fade duration (seconds)"], path = "panel.fadeDuration",
         min = 0, max = 2, step = 0.05, decimals = 2,
     }))
-    stack:Add(UI:Check(content, { label = "Show tooltips on hover", path = "panel.tooltips" }))
+    stack:Add(UI:Check(content, { label = L["Show tooltips on hover"], path = "panel.tooltips" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Minimap and options"))
+    stack:Add(UI:Header(content, L["Minimap and options"]))
 
     -- These two live in the account-wide store rather than the profile, so
     -- switching looks doesn't move your minimap button.
     stack:Add(UI:Check(content, {
-        label = "Show the minimap button",
-        tooltip = "Left-click opens these options, right-click opens the quick menu. Drag it around the minimap edge.",
+        label = L["Show the minimap button"],
+        tooltip = L["Left-click opens these options, right-click opens the quick menu. Drag it around the minimap edge."],
         get = function() return not SPAddonDB.global.minimap.hide end,
         set = function(value) SP.Broker:SetHidden(not value) end,
     }))
     stack:Add(UI:Check(content, {
-        label = "Show a live preview while configuring",
-        tooltip = "Docks the real panel beside this window so you can see changes as you make them.",
+        label = L["Show a live preview while configuring"],
+        tooltip = L["Docks the real panel beside this window so you can see changes as you make them."],
         get = function() return SPAddonDB.global.livePreview end,
         set = function(value)
             SPAddonDB.global.livePreview = value
@@ -195,11 +196,11 @@ local function buildGeneral(content, stack)
 
     stack:Gap(10)
     stack:Add(UI:ButtonRow(content, {
-        { text = "Reset position", width = 130, onClick = function()
+        { text = L["Reset position"], width = 130, onClick = function()
             SP.db.panel.pos = Config:DeepCopy(Config.DEFAULTS.panel.pos)
             SP:Refresh()
         end },
-        { text = "Reset peak speed", width = 130, onClick = function()
+        { text = L["Reset peak speed"], width = 130, onClick = function()
             SP.ResetPeakSpeed()
         end },
     }))
@@ -209,90 +210,90 @@ end
 -- PAGE: PANEL
 --------------------------------------------------------------------------------
 local function buildPanel(content, stack)
-    stack:Add(UI:Header(content, "Size"))
+    stack:Add(UI:Header(content, L["Size"]))
 
     stack:Add(UI:Check(content, {
-        label = "Auto-size width to content", path = "panel.autoWidth",
-        tooltip = "Grows and shrinks the panel to fit the widest row.",
+        label = L["Auto-size width to content"], path = "panel.autoWidth",
+        tooltip = L["Grows and shrinks the panel to fit the widest row."],
     }))
     stack:Add(UI:Slider(content, {
-        label = "Width", path = "panel.width", min = 80, max = 600, step = 1,
+        label = L["Width"], path = "panel.width", min = 80, max = 600, step = 1,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Minimum width (auto-size)", path = "panel.minWidth", min = 60, max = 400, step = 1,
+        label = L["Minimum width (auto-size)"], path = "panel.minWidth", min = 60, max = 400, step = 1,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Side padding", path = "panel.paddingX", min = 0, max = 40, step = 1,
+        label = L["Side padding"], path = "panel.paddingX", min = 0, max = 40, step = 1,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Top padding", path = "panel.paddingTop", min = 0, max = 40, step = 1,
+        label = L["Top padding"], path = "panel.paddingTop", min = 0, max = 40, step = 1,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Bottom padding", path = "panel.paddingBottom", min = 0, max = 40, step = 1,
+        label = L["Bottom padding"], path = "panel.paddingBottom", min = 0, max = 40, step = 1,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Gap between sections", path = "panel.sectionGap", min = 0, max = 40, step = 1,
+        label = L["Gap between sections"], path = "panel.sectionGap", min = 0, max = 40, step = 1,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Section header spacing", path = "panel.headerStep", min = 0, max = 40, step = 1,
-        tooltip = "Set to 0 to remove section headers entirely.",
+        label = L["Section header spacing"], path = "panel.headerStep", min = 0, max = 40, step = 1,
+        tooltip = L["Set to 0 to remove section headers entirely."],
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Background"))
+    stack:Add(UI:Header(content, L["Background"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Background texture", path = "panel.bgTexture",
+        label = L["Background texture"], path = "panel.bgTexture",
         values = mediaValues("background"), preview = "background",
     }))
-    stack:Add(UI:Color(content, { label = "Background color and transparency", path = "panel.bgColor" }))
-    stack:Add(UI:Check(content, { label = "Tile the background", path = "panel.bgTile" }))
+    stack:Add(UI:Color(content, { label = L["Background color and transparency"], path = "panel.bgColor" }))
+    stack:Add(UI:Check(content, { label = L["Tile the background"], path = "panel.bgTile" }))
     stack:Add(UI:Slider(content, {
-        label = "Tile size", path = "panel.bgTileSize", min = 8, max = 256, step = 1,
+        label = L["Tile size"], path = "panel.bgTileSize", min = 8, max = 256, step = 1,
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Border"))
+    stack:Add(UI:Header(content, L["Border"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Border style", path = "panel.borderStyle", values = mediaValues("border"),
+        label = L["Border style"], path = "panel.borderStyle", values = mediaValues("border"),
     }))
-    stack:Add(UI:Color(content, { label = "Border color and transparency", path = "panel.borderColor" }))
+    stack:Add(UI:Color(content, { label = L["Border color and transparency"], path = "panel.borderColor" }))
     stack:Add(UI:Slider(content, {
-        label = "Border thickness", path = "panel.borderSize", min = 1, max = 32, step = 1,
-        tooltip = "Only affects pixel-style borders; textured borders use their own size.",
+        label = L["Border thickness"], path = "panel.borderSize", min = 1, max = 32, step = 1,
+        tooltip = L["Only affects pixel-style borders; textured borders use their own size."],
     }))
     stack:Add(UI:Slider(content, {
-        label = "Border inset", path = "panel.borderInset", min = -16, max = 16, step = 1,
+        label = L["Border inset"], path = "panel.borderInset", min = -16, max = 16, step = 1,
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Title"))
+    stack:Add(UI:Header(content, L["Title"]))
 
-    stack:Add(UI:Check(content, { label = "Show title", path = "panel.showTitle" }))
+    stack:Add(UI:Check(content, { label = L["Show title"], path = "panel.showTitle" }))
     stack:Add(UI:Dropdown(content, {
-        label = "Title shows", path = "panel.titleMode", values = TITLE_MODE_VALUES,
+        label = L["Title shows"], path = "panel.titleMode", values = TITLE_MODE_VALUES,
     }))
     stack:Add(UI:Dropdown(content, {
-        label = "Title alignment", path = "panel.titleAlign", values = ALIGN_VALUES,
+        label = L["Title alignment"], path = "panel.titleAlign", values = ALIGN_VALUES,
     }))
     stack:Add(UI:EditBox(content, {
-        label = "Item level format", path = "panel.titleFormat",
-        tooltip = "Tokens: $equipped, $overall, $name, $spec, $class, $level",
+        label = L["Item level format"], path = "panel.titleFormat",
+        tooltip = L["Tokens: $equipped, $overall, $name, $spec, $class, $level"],
     }))
-    stack:Add(UI:Note(content, "Tokens: $equipped  $overall  $name  $spec  $class  $level"))
+    stack:Add(UI:Note(content, L["Tokens: $equipped  $overall  $name  $spec  $class  $level"]))
     stack:Add(UI:Slider(content, {
-        label = "Item level decimals", path = "panel.titleDecimals", min = 0, max = 2, step = 1,
+        label = L["Item level decimals"], path = "panel.titleDecimals", min = 0, max = 2, step = 1,
     }))
-    stack:Add(UI:EditBox(content, { label = "Custom title text", path = "panel.titleText" }))
+    stack:Add(UI:EditBox(content, { label = L["Custom title text"], path = "panel.titleText" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Divider"))
+    stack:Add(UI:Header(content, L["Divider"]))
 
-    stack:Add(UI:Check(content, { label = "Show divider under title", path = "panel.showDivider" }))
-    stack:Add(UI:Color(content, { label = "Divider color", path = "panel.dividerColor" }))
+    stack:Add(UI:Check(content, { label = L["Show divider under title"], path = "panel.showDivider" }))
+    stack:Add(UI:Color(content, { label = L["Divider color"], path = "panel.dividerColor" }))
     stack:Add(UI:Slider(content, {
-        label = "Divider thickness", path = "panel.dividerThickness", min = 1, max = 8, step = 1,
+        label = L["Divider thickness"], path = "panel.dividerThickness", min = 1, max = 8, step = 1,
     }))
 end
 
@@ -300,134 +301,134 @@ end
 -- PAGE: ROWS & BARS
 --------------------------------------------------------------------------------
 local function buildBars(content, stack)
-    stack:Add(UI:Header(content, "Row style"))
+    stack:Add(UI:Header(content, L["Row style"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Draw rows as", path = "bars.style", values = ROW_STYLE_VALUES,
-        tooltip = "Bars draw a status bar per stat. Text only draws a single colored line per stat.",
+        label = L["Draw rows as"], path = "bars.style", values = ROW_STYLE_VALUES,
+        tooltip = L["Bars draw a status bar per stat. Text only draws a single colored line per stat."],
     }))
     stack:Add(UI:Dropdown(content, {
-        label = "Text alignment (text style)", path = "bars.align", values = ALIGN_VALUES,
+        label = L["Text alignment (text style)"], path = "bars.align", values = ALIGN_VALUES,
     }))
     stack:Add(UI:EditBox(content, {
-        label = "Label/value separator (text style)", path = "bars.textSep",
-        tooltip = "Placed between the stat name and its value, e.g. ': '",
+        label = L["Label/value separator (text style)"], path = "bars.textSep",
+        tooltip = L["Placed between the stat name and its value, e.g. ': '"],
     }))
     stack:Add(UI:Slider(content, {
-        label = "Line height (text style)", path = "bars.textHeight", min = 6, max = 40, step = 1,
+        label = L["Line height (text style)"], path = "bars.textHeight", min = 6, max = 40, step = 1,
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Bar appearance"))
+    stack:Add(UI:Header(content, L["Bar appearance"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Bar texture", path = "bars.texture",
+        label = L["Bar texture"], path = "bars.texture",
         values = mediaValues("statusbar"), preview = "statusbar",
     }))
-    stack:Add(UI:Slider(content, { label = "Bar height", path = "bars.height", min = 4, max = 48, step = 1 }))
-    stack:Add(UI:Slider(content, { label = "Space between bars", path = "bars.spacing", min = 0, max = 30, step = 1 }))
-    stack:Add(UI:Slider(content, { label = "Horizontal inset", path = "bars.inset", min = 0, max = 40, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["Bar height"], path = "bars.height", min = 4, max = 48, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["Space between bars"], path = "bars.spacing", min = 0, max = 30, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["Horizontal inset"], path = "bars.inset", min = 0, max = 40, step = 1 }))
     stack:Add(UI:Slider(content, {
-        label = "Bar opacity", path = "bars.alpha", min = 0, max = 1, step = 0.01, decimals = 2,
+        label = L["Bar opacity"], path = "bars.alpha", min = 0, max = 1, step = 0.01, decimals = 2,
     }))
-    stack:Add(UI:Check(content, { label = "Fill from the right", path = "bars.reverseFill" }))
+    stack:Add(UI:Check(content, { label = L["Fill from the right"], path = "bars.reverseFill" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Bar colors"))
+    stack:Add(UI:Header(content, L["Bar colors"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Color mode", path = "bars.colorMode", values = COLOR_MODE_VALUES,
-        tooltip = "Per-stat colors are set on the Stats page.",
+        label = L["Color mode"], path = "bars.colorMode", values = COLOR_MODE_VALUES,
+        tooltip = L["Per-stat colors are set on the Stats page."],
     }))
-    stack:Add(UI:Color(content, { label = "Single color", path = "bars.singleColor" }))
-    stack:Add(UI:Color(content, { label = "Gradient: low value", path = "bars.gradientLow" }))
-    stack:Add(UI:Color(content, { label = "Gradient: high value", path = "bars.gradientHigh" }))
+    stack:Add(UI:Color(content, { label = L["Single color"], path = "bars.singleColor" }))
+    stack:Add(UI:Color(content, { label = L["Gradient: low value"], path = "bars.gradientLow" }))
+    stack:Add(UI:Color(content, { label = L["Gradient: high value"], path = "bars.gradientHigh" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Bar background"))
+    stack:Add(UI:Header(content, L["Bar background"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Track texture", path = "bars.trackTexture",
+        label = L["Track texture"], path = "bars.trackTexture",
         values = mediaValues("background"), preview = "background",
     }))
-    stack:Add(UI:Color(content, { label = "Track color and transparency", path = "bars.trackColor" }))
+    stack:Add(UI:Color(content, { label = L["Track color and transparency"], path = "bars.trackColor" }))
     stack:Add(UI:Check(content, {
-        label = "Tint track with the stat color", path = "bars.trackUseStatColor",
+        label = L["Tint track with the stat color"], path = "bars.trackUseStatColor",
     }))
     stack:Add(UI:Slider(content, {
-        label = "Track tint opacity", path = "bars.trackStatAlpha",
+        label = L["Track tint opacity"], path = "bars.trackStatAlpha",
         min = 0, max = 1, step = 0.01, decimals = 2,
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Bar border"))
+    stack:Add(UI:Header(content, L["Bar border"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Border style", path = "bars.borderStyle", values = mediaValues("border"),
+        label = L["Border style"], path = "bars.borderStyle", values = mediaValues("border"),
     }))
-    stack:Add(UI:Color(content, { label = "Border color", path = "bars.borderColor" }))
-    stack:Add(UI:Slider(content, { label = "Border thickness", path = "bars.borderSize", min = 1, max = 16, step = 1 }))
+    stack:Add(UI:Color(content, { label = L["Border color"], path = "bars.borderColor" }))
+    stack:Add(UI:Slider(content, { label = L["Border thickness"], path = "bars.borderSize", min = 1, max = 16, step = 1 }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Motion"))
+    stack:Add(UI:Header(content, L["Motion"]))
 
     stack:Add(UI:Check(content, {
-        label = "Animate value changes", path = "bars.smooth",
-        tooltip = "Eases bars toward new values instead of snapping.",
+        label = L["Animate value changes"], path = "bars.smooth",
+        tooltip = L["Eases bars toward new values instead of snapping."],
     }))
     stack:Add(UI:Slider(content, {
-        label = "Animation speed", path = "bars.smoothSpeed", min = 1, max = 30, step = 0.5, decimals = 1,
+        label = L["Animation speed"], path = "bars.smoothSpeed", min = 1, max = 30, step = 0.5, decimals = 1,
     }))
-    stack:Add(UI:Check(content, { label = "Show a spark at the fill edge", path = "bars.spark" }))
-    stack:Add(UI:Color(content, { label = "Spark color", path = "bars.sparkColor" }))
+    stack:Add(UI:Check(content, { label = L["Show a spark at the fill edge"], path = "bars.spark" }))
+    stack:Add(UI:Color(content, { label = L["Spark color"], path = "bars.sparkColor" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Row text"))
+    stack:Add(UI:Header(content, L["Row text"]))
 
-    stack:Add(UI:Check(content, { label = "Show stat names", path = "bars.showLabel" }))
-    stack:Add(UI:Check(content, { label = "Show values", path = "bars.showValue" }))
-    stack:Add(UI:Check(content, { label = "Color names with the stat color", path = "bars.labelUseStatColor" }))
-    stack:Add(UI:Check(content, { label = "Color values with the stat color", path = "bars.valueUseStatColor" }))
+    stack:Add(UI:Check(content, { label = L["Show stat names"], path = "bars.showLabel" }))
+    stack:Add(UI:Check(content, { label = L["Show values"], path = "bars.showValue" }))
+    stack:Add(UI:Check(content, { label = L["Color names with the stat color"], path = "bars.labelUseStatColor" }))
+    stack:Add(UI:Check(content, { label = L["Color values with the stat color"], path = "bars.valueUseStatColor" }))
     stack:Add(UI:Check(content, {
-        label = "Number prioritized stats", path = "bars.showRank",
-        tooltip = "Prefixes stats in a priority-ordered section with 1, 2, 3...",
+        label = L["Number prioritized stats"], path = "bars.showRank",
+        tooltip = L["Prefixes stats in a priority-ordered section with 1, 2, 3..."],
     }))
-    stack:Add(UI:EditBox(content, { label = "Numbering format", path = "bars.rankFormat" }))
-    stack:Add(UI:Slider(content, { label = "Name offset", path = "bars.labelX", min = -40, max = 40, step = 1 }))
-    stack:Add(UI:Slider(content, { label = "Value offset", path = "bars.valueX", min = -40, max = 40, step = 1 }))
+    stack:Add(UI:EditBox(content, { label = L["Numbering format"], path = "bars.rankFormat" }))
+    stack:Add(UI:Slider(content, { label = L["Name offset"], path = "bars.labelX", min = -40, max = 40, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["Value offset"], path = "bars.valueX", min = -40, max = 40, step = 1 }))
 end
 
 --------------------------------------------------------------------------------
 -- PAGE: FONTS
 --------------------------------------------------------------------------------
 local FONT_ELEMENTS = {
-    { name = "Title",          value = "title" },
-    { name = "Section header", value = "header" },
-    { name = "Stat name",      value = "label" },
-    { name = "Stat value",     value = "value" },
-    { name = "Priority line",  value = "priority" },
-    { name = "Footer",         value = "footer" },
+    { name = L["Title"],          value = "title" },
+    { name = L["Section header"], value = "header" },
+    { name = L["Stat name"],      value = "label" },
+    { name = L["Stat value"],     value = "value" },
+    { name = L["Priority line"],  value = "priority" },
+    { name = L["Footer"],         value = "footer" },
 }
 
 local function buildFonts(content, stack)
     local selected = "title"
 
-    stack:Add(UI:Header(content, "Font"))
+    stack:Add(UI:Header(content, L["Font"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Font face (all text)", path = "font.face",
+        label = L["Font face (all text)"], path = "font.face",
         values = mediaValues("font"), preview = "font",
     }))
-    stack:Add(UI:Check(content, { label = "Drop shadow", path = "font.shadow" }))
-    stack:Add(UI:Color(content, { label = "Shadow color", path = "font.shadowColor" }))
-    stack:Add(UI:Slider(content, { label = "Shadow X offset", path = "font.shadowX", min = -5, max = 5, step = 1 }))
-    stack:Add(UI:Slider(content, { label = "Shadow Y offset", path = "font.shadowY", min = -5, max = 5, step = 1 }))
+    stack:Add(UI:Check(content, { label = L["Drop shadow"], path = "font.shadow" }))
+    stack:Add(UI:Color(content, { label = L["Shadow color"], path = "font.shadowColor" }))
+    stack:Add(UI:Slider(content, { label = L["Shadow X offset"], path = "font.shadowX", min = -5, max = 5, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["Shadow Y offset"], path = "font.shadowY", min = -5, max = 5, step = 1 }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Per-element size and color"))
+    stack:Add(UI:Header(content, L["Per-element size and color"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Editing", values = FONT_ELEMENTS,
+        label = L["Editing"], values = FONT_ELEMENTS,
         get = function() return selected end,
         set = function(value) selected = value end,
         refreshAll = true,
@@ -438,17 +439,17 @@ local function buildFonts(content, stack)
     end
 
     stack:Add(UI:Slider(content, {
-        label = "Size", min = 6, max = 40, step = 1,
+        label = L["Size"], min = 6, max = 40, step = 1,
         get = function() return element().size end,
         set = function(value) element().size = value; SP:Refresh() end,
     }))
     stack:Add(UI:Dropdown(content, {
-        label = "Outline", values = fontFlagValues,
+        label = L["Outline"], values = fontFlagValues,
         get = function() return element().flags end,
         set = function(value) element().flags = value; SP:Refresh() end,
     }))
     stack:Add(UI:Color(content, {
-        label = "Color",
+        label = L["Color"],
         get = function()
             local c = element().color or { 1, 1, 1, 1 }
             return c[1], c[2], c[3], c[4] or 1
@@ -456,7 +457,7 @@ local function buildFonts(content, stack)
         set = function(r, g, b, a) element().color = { r, g, b, a } end,
     }))
 
-    stack:Add(UI:Note(content, "Stat name and value colors are overridden when 'Color with the stat color' is enabled on the Rows & Bars page."))
+    stack:Add(UI:Note(content, L["Stat name and value colors are overridden when 'Color with the stat color' is enabled on the Rows & Bars page."]))
 end
 
 --------------------------------------------------------------------------------
@@ -469,22 +470,22 @@ local function buildStats(content, stack)
         return SP.db.stats[selected] or {}
     end
 
-    stack:Add(UI:Header(content, "Per-stat settings"))
+    stack:Add(UI:Header(content, L["Per-stat settings"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Editing stat", values = statValues,
+        label = L["Editing stat"], values = statValues,
         get = function() return selected end,
         set = function(value) selected = value end,
         refreshAll = true,
     }))
 
     stack:Add(UI:Check(content, {
-        label = "Show this stat",
+        label = L["Show this stat"],
         get = function() return cfg().enabled end,
         set = function(value) cfg().enabled = value; SP:Refresh() end,
     }))
     stack:Add(UI:Color(content, {
-        label = "Stat color",
+        label = L["Stat color"],
         get = function()
             local c = cfg().color or { 1, 1, 1, 1 }
             return c[1], c[2], c[3], c[4] or 1
@@ -492,12 +493,12 @@ local function buildStats(content, stack)
         set = function(r, g, b, a) cfg().color = { r, g, b, a } end,
     }))
     stack:Add(UI:Check(content, {
-        label = "Use class color for this stat",
+        label = L["Use class color for this stat"],
         get = function() return cfg().useClassColor end,
         set = function(value) cfg().useClassColor = value; SP:Refresh() end,
     }))
     stack:Add(UI:EditBox(content, {
-        label = "Display name (blank for default)",
+        label = L["Display name (blank for default)"],
         get = function() return cfg().label or "" end,
         set = function(value)
             value = value:trim()
@@ -506,33 +507,33 @@ local function buildStats(content, stack)
         end,
     }))
     stack:Add(UI:EditBox(content, {
-        label = "Value format",
+        label = L["Value format"],
         get = function() return cfg().format or "" end,
         set = function(value) cfg().format = value; SP:Refresh() end,
     }))
-    stack:Add(UI:Note(content, "Tokens: $value  $rating  $valuec  $ratingc  $max  $label  $peak  $yards\nExample: '$rating - $value%' shows '285 - 10.65%'."))
+    stack:Add(UI:Note(content, L["Tokens: $value  $rating  $valuec  $ratingc  $max  $label  $peak  $yards\nExample: '$rating - $value%' shows '285 - 10.65%'."]))
     stack:Add(UI:Slider(content, {
-        label = "Decimal places", min = 0, max = 4, step = 1,
+        label = L["Decimal places"], min = 0, max = 4, step = 1,
         get = function() return cfg().decimals end,
         set = function(value) cfg().decimals = value; SP:Refresh() end,
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Bar scale"))
+    stack:Add(UI:Header(content, L["Bar scale"]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Bar fill", values = FILL_VALUES,
+        label = L["Bar fill"], values = FILL_VALUES,
         get = function() return cfg().fill end,
         set = function(value) cfg().fill = value; SP:Refresh() end,
     }))
     stack:Add(UI:Slider(content, {
-        label = "Value at a full bar", min = 1, max = 20000, step = 1,
+        label = L["Value at a full bar"], min = 1, max = 20000, step = 1,
         get = function() return cfg().max end,
         set = function(value) cfg().max = value; SP:Refresh() end,
     }))
     stack:Add(UI:Check(content, {
-        label = "Grow the scale automatically",
-        tooltip = "Raises the full-bar value whenever the stat exceeds it. Useful for Speed, which has no ceiling while skyriding.",
+        label = L["Grow the scale automatically"],
+        tooltip = L["Raises the full-bar value whenever the stat exceeds it. Useful for Speed, which has no ceiling while skyriding."],
         get = function() return cfg().autoMax end,
         set = function(value)
             cfg().autoMax = value
@@ -543,7 +544,7 @@ local function buildStats(content, stack)
 
     stack:Gap(10)
     stack:Add(UI:ButtonRow(content, {
-        { text = "Reset all stats", width = 140, onClick = function()
+        { text = L["Reset all stats"], width = 140, onClick = function()
             Config:Reset("stats")
             UI:RefreshAll()
         end },
@@ -568,43 +569,43 @@ local function buildSections(content, stack)
         return out
     end
 
-    stack:Add(UI:Header(content, "Sections"))
-    stack:Add(UI:Note(content, "Sections are drawn top to bottom in this order. Each one holds any set of stats you like."))
+    stack:Add(UI:Header(content, L["Sections"]))
+    stack:Add(UI:Note(content, L["Sections are drawn top to bottom in this order. Each one holds any set of stats you like."]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Editing section", values = sectionValues,
+        label = L["Editing section"], values = sectionValues,
         get = function() return selectedIndex end,
         set = function(value) selectedIndex = value end,
         refreshAll = true,
     }))
 
     stack:Add(UI:EditBox(content, {
-        label = "Section title",
+        label = L["Section title"],
         get = function() return section().title or "" end,
         set = function(value) section().title = value; SP:Refresh() end,
     }))
     stack:Add(UI:Check(content, {
-        label = "Show this section",
+        label = L["Show this section"],
         get = function() return section().enabled end,
         set = function(value) section().enabled = value; SP:Refresh() end,
     }))
     stack:Add(UI:Check(content, {
-        label = "Show the section header",
+        label = L["Show the section header"],
         get = function() return section().showHeader ~= false end,
         set = function(value) section().showHeader = value; SP:Refresh() end,
     }))
     stack:Add(UI:Check(content, {
-        label = "Order by spec stat priority",
-        tooltip = "Re-sorts this section's stats to match your specialization's priority.",
+        label = L["Order by spec stat priority"],
+        tooltip = L["Re-sorts this section's stats to match your specialization's priority."],
         get = function() return section().prioritized end,
         set = function(value) section().prioritized = value; SP:Refresh() end,
     }))
     stack:Add(UI:Dropdown(content, {
-        label = "Header alignment", path = "panel.headerAlign", values = ALIGN_VALUES,
+        label = L["Header alignment"], path = "panel.headerAlign", values = ALIGN_VALUES,
     }))
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Move section up", width = 140, onClick = function()
+        { text = L["Move section up"], width = 140, onClick = function()
             if selectedIndex > 1 then
                 local sections = SP.db.sections
                 sections[selectedIndex], sections[selectedIndex - 1] = sections[selectedIndex - 1], sections[selectedIndex]
@@ -613,7 +614,7 @@ local function buildSections(content, stack)
                 UI:RefreshAll()
             end
         end },
-        { text = "Move section down", width = 140, onClick = function()
+        { text = L["Move section down"], width = 140, onClick = function()
             local sections = SP.db.sections
             if selectedIndex < #sections then
                 sections[selectedIndex], sections[selectedIndex + 1] = sections[selectedIndex + 1], sections[selectedIndex]
@@ -625,7 +626,7 @@ local function buildSections(content, stack)
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Stats in this section"))
+    stack:Add(UI:Header(content, L["Stats in this section"]))
 
     -- The membership list grows and shrinks as stats are added or removed, so
     -- it is placed LAST on the page - anything stacked below it would be
@@ -659,9 +660,9 @@ local function buildSections(content, stack)
                 row.label:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
                 row.label:SetPoint("LEFT", row.check, "RIGHT", 4, 0)
 
-                row.up = UI:Button(row, { text = "Up", width = 44, height = 20 })
-                row.down = UI:Button(row, { text = "Down", width = 54, height = 20 })
-                row.remove = UI:Button(row, { text = "Remove", width = 66, height = 20 })
+                row.up = UI:Button(row, { text = L["Up"], width = 44, height = 20 })
+                row.down = UI:Button(row, { text = L["Down"], width = 54, height = 20 })
+                row.remove = UI:Button(row, { text = L["Remove"], width = 66, height = 20 })
 
                 row.remove:SetPoint("RIGHT", row, "RIGHT", 0, 0)
                 row.down:SetPoint("RIGHT", row.remove, "LEFT", -4, 0)
@@ -717,7 +718,7 @@ local function buildSections(content, stack)
 
     -- Only offer stats that aren't already in this section.
     addDropdown = UI:Dropdown(content, {
-        label = "Add a stat to this section",
+        label = L["Add a stat to this section"],
         values = function()
             local present = {}
             for _, statName in ipairs(section().stats or {}) do present[statName] = true end
@@ -729,7 +730,7 @@ local function buildSections(content, stack)
                     out[#out + 1] = { name = def and def.name or statName, value = statName }
                 end
             end
-            if #out == 0 then out[1] = { name = "(every stat is already here)", value = "" } end
+            if #out == 0 then out[1] = { name = L["(every stat is already here)"], value = "" } end
             return out
         end,
         get = function() return "" end,
@@ -746,7 +747,7 @@ local function buildSections(content, stack)
     stack:Add(addDropdown)
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Reset sections", width = 140, onClick = function()
+        { text = L["Reset sections"], width = 140, onClick = function()
             Config:Reset("sections")
             selectedIndex = 1
             refreshList()
@@ -770,38 +771,38 @@ end
 -- PAGE: FOOTER
 --------------------------------------------------------------------------------
 local function buildFooter(content, stack)
-    stack:Add(UI:Header(content, "Footer line"))
+    stack:Add(UI:Header(content, L["Footer line"]))
 
-    stack:Add(UI:Check(content, { label = "Show the footer", path = "footer.enabled" }))
-    stack:Add(UI:Check(content, { label = "Frames per second", path = "footer.showFPS" }))
-    stack:Add(UI:Check(content, { label = "Home latency", path = "footer.showHomeLatency" }))
-    stack:Add(UI:Check(content, { label = "World latency", path = "footer.showWorldLatency" }))
-    stack:Add(UI:Check(content, { label = "Addon memory use", path = "footer.showMemory" }))
-    stack:Add(UI:EditBox(content, { label = "Separator between entries", path = "footer.separator" }))
-
-    stack:Gap(10)
-    stack:Add(UI:Header(content, "Formats"))
-
-    stack:Add(UI:EditBox(content, { label = "FPS format", path = "footer.fpsFormat" }))
-    stack:Add(UI:EditBox(content, { label = "Home latency format", path = "footer.homeFormat" }))
-    stack:Add(UI:EditBox(content, { label = "World latency format", path = "footer.worldFormat" }))
-    stack:Add(UI:EditBox(content, { label = "Memory format", path = "footer.memoryFormat" }))
-    stack:Add(UI:Note(content, "These use standard number formats: %d for a whole number, %.1f for one decimal."))
+    stack:Add(UI:Check(content, { label = L["Show the footer"], path = "footer.enabled" }))
+    stack:Add(UI:Check(content, { label = L["Frames per second"], path = "footer.showFPS" }))
+    stack:Add(UI:Check(content, { label = L["Home latency"], path = "footer.showHomeLatency" }))
+    stack:Add(UI:Check(content, { label = L["World latency"], path = "footer.showWorldLatency" }))
+    stack:Add(UI:Check(content, { label = L["Addon memory use"], path = "footer.showMemory" }))
+    stack:Add(UI:EditBox(content, { label = L["Separator between entries"], path = "footer.separator" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Performance coloring"))
+    stack:Add(UI:Header(content, L["Formats"]))
+
+    stack:Add(UI:EditBox(content, { label = L["FPS format"], path = "footer.fpsFormat" }))
+    stack:Add(UI:EditBox(content, { label = L["Home latency format"], path = "footer.homeFormat" }))
+    stack:Add(UI:EditBox(content, { label = L["World latency format"], path = "footer.worldFormat" }))
+    stack:Add(UI:EditBox(content, { label = L["Memory format"], path = "footer.memoryFormat" }))
+    stack:Add(UI:Note(content, L["These use standard number formats: %d for a whole number, %.1f for one decimal."]))
+
+    stack:Gap(10)
+    stack:Add(UI:Header(content, L["Performance coloring"]))
 
     stack:Add(UI:Check(content, {
-        label = "Color by performance", path = "footer.colorize",
-        tooltip = "Turns FPS and latency green, yellow or red depending on the thresholds below.",
+        label = L["Color by performance"], path = "footer.colorize",
+        tooltip = L["Turns FPS and latency green, yellow or red depending on the thresholds below."],
     }))
-    stack:Add(UI:Color(content, { label = "Good", path = "footer.goodColor" }))
-    stack:Add(UI:Color(content, { label = "Fair", path = "footer.okColor" }))
-    stack:Add(UI:Color(content, { label = "Poor", path = "footer.badColor" }))
-    stack:Add(UI:Slider(content, { label = "FPS considered good", path = "footer.fpsGood", min = 20, max = 240, step = 1 }))
-    stack:Add(UI:Slider(content, { label = "FPS considered poor", path = "footer.fpsBad", min = 5, max = 120, step = 1 }))
-    stack:Add(UI:Slider(content, { label = "Latency considered good (ms)", path = "footer.msGood", min = 10, max = 400, step = 5 }))
-    stack:Add(UI:Slider(content, { label = "Latency considered poor (ms)", path = "footer.msBad", min = 50, max = 1000, step = 5 }))
+    stack:Add(UI:Color(content, { label = L["Good"], path = "footer.goodColor" }))
+    stack:Add(UI:Color(content, { label = L["Fair"], path = "footer.okColor" }))
+    stack:Add(UI:Color(content, { label = L["Poor"], path = "footer.badColor" }))
+    stack:Add(UI:Slider(content, { label = L["FPS considered good"], path = "footer.fpsGood", min = 20, max = 240, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["FPS considered poor"], path = "footer.fpsBad", min = 5, max = 120, step = 1 }))
+    stack:Add(UI:Slider(content, { label = L["Latency considered good (ms)"], path = "footer.msGood", min = 10, max = 400, step = 5 }))
+    stack:Add(UI:Slider(content, { label = L["Latency considered poor (ms)"], path = "footer.msBad", min = 50, max = 1000, step = 5 }))
 end
 
 --------------------------------------------------------------------------------
@@ -812,18 +813,18 @@ local SECONDARY = { "Crit", "Haste", "Mastery", "Versatility" }
 local function buildPriority(content, stack)
     local weightText = ""  -- the pasted weight/order box
 
-    stack:Add(UI:Header(content, "Priority line"))
+    stack:Add(UI:Header(content, L["Priority line"]))
 
-    stack:Add(UI:Check(content, { label = "Show the priority chain", path = "priorityLine.enabled" }))
-    stack:Add(UI:EditBox(content, { label = "Separator", path = "priorityLine.separator" }))
-    stack:Add(UI:Check(content, { label = "Color each stat name", path = "priorityLine.colorize" }))
-    stack:Add(UI:Check(content, { label = "Prefix with the spec name", path = "priorityLine.showSpec" }))
+    stack:Add(UI:Check(content, { label = L["Show the priority chain"], path = "priorityLine.enabled" }))
+    stack:Add(UI:EditBox(content, { label = L["Separator"], path = "priorityLine.separator" }))
+    stack:Add(UI:Check(content, { label = L["Color each stat name"], path = "priorityLine.colorize" }))
+    stack:Add(UI:Check(content, { label = L["Prefix with the spec name"], path = "priorityLine.showSpec" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Priority for your current spec"))
-    stack:Add(UI:Note(content, "The built-in order is a general-purpose baseline. Sim your own character for the authoritative answer, then set it here."))
+    stack:Add(UI:Header(content, L["Priority for your current spec"]))
+    stack:Add(UI:Note(content, L["The built-in order is a general-purpose baseline. Sim your own character for the authoritative answer, then set it here."]))
 
-    local specLabel = UI:Note(content, "")
+    local specLabel = UI:Note(content, L[""])
     stack:Add(specLabel)
     specLabel.Refresh = function(self)
         local _, specName = SP:GetCurrentPriority()
@@ -839,7 +840,7 @@ local function buildPriority(content, stack)
 
     for slot = 1, 4 do
         stack:Add(UI:Dropdown(content, {
-            label = "Priority " .. slot,
+            label = L["Priority "] .. slot,
             values = function()
                 local out = {}
                 for _, statName in ipairs(SECONDARY) do
@@ -878,11 +879,11 @@ local function buildPriority(content, stack)
     end
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Paste a stat weight string"))
-    stack:Add(UI:Note(content, "Paste a Pawn string (from Raidbots, a sim, or a stat site) or a plain order like 'Mastery > Haste > Crit > Versatility'. StatPanel reads the four secondaries and sets the order for your current spec."))
+    stack:Add(UI:Header(content, L["Paste a stat weight string"]))
+    stack:Add(UI:Note(content, L["Paste a Pawn string (from Raidbots, a sim, or a stat site) or a plain order like 'Mastery > Haste > Crit > Versatility'. StatPanel reads the four secondaries and sets the order for your current spec."]))
 
     local weightBox = UI:EditBox(content, {
-        label = "Weights or order",
+        label = L["Weights or order"],
         multiline = true,
         manualCommit = true,
         get = function() return weightText end,
@@ -891,10 +892,10 @@ local function buildPriority(content, stack)
     stack:Add(weightBox)
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Apply pasted weights", width = 180, onClick = function()
+        { text = L["Apply pasted weights"], width = 180, onClick = function()
             local _, specName, specID = SP:GetCurrentPriority()
             if not specID then
-                SP:Print("no active specialization to apply to.")
+                SP:Print(L["no active specialization to apply to."])
                 return
             end
             local order, err = SP:ParsePriorityString(weightBox.edit:GetText())
@@ -905,8 +906,8 @@ local function buildPriority(content, stack)
             SP.db.customPriority[specID] = order
             weightBox.edit:SetText("")
             weightText = ""
-            SP:Print(string.format("priority for %s set to %s.",
-                specName or "your spec", table.concat(order, " > ")))
+            SP:Print(string.format(L["priority for %s set to %s."],
+                specName or L["your spec"], table.concat(order, " > ")))
             SP:Refresh()
             UI:RefreshAll()
         end },
@@ -914,7 +915,7 @@ local function buildPriority(content, stack)
 
     stack:Gap(10)
     stack:Add(UI:ButtonRow(content, {
-        { text = "Use the built-in order", width = 170, onClick = function()
+        { text = L["Use the built-in order"], width = 170, onClick = function()
             local _, _, specID = SP:GetCurrentPriority()
             if specID then
                 SP.db.customPriority[specID] = nil
@@ -929,8 +930,8 @@ end
 -- PAGE: PRESETS
 --------------------------------------------------------------------------------
 local function buildPresets(content, stack)
-    stack:Add(UI:Header(content, "Presets"))
-    stack:Add(UI:Note(content, "A preset overwrites appearance settings in the current profile. Your position, visibility rules and profiles are left alone."))
+    stack:Add(UI:Header(content, L["Presets"]))
+    stack:Add(UI:Note(content, L["A preset overwrites appearance settings in the current profile. Your position, visibility rules and profiles are left alone."]))
 
     for _, name in ipairs(Presets.order) do
         local preset = Presets.list[name]
@@ -947,9 +948,9 @@ local function buildPresets(content, stack)
     end
 
     stack:Gap(12)
-    stack:Add(UI:Header(content, "Start over"))
+    stack:Add(UI:Header(content, L["Start over"]))
     stack:Add(UI:ButtonRow(content, {
-        { text = "Reset this profile", width = 160, onClick = function()
+        { text = L["Reset this profile"], width = 160, onClick = function()
             Config:Reset()
             UI:RefreshAll()
         end },
@@ -964,11 +965,11 @@ local function buildProfiles(content, stack)
     local importText = ""    -- the pasted import-string box
     local importTarget = ""  -- "Import into profile" name box
 
-    stack:Add(UI:Header(content, "Profile"))
-    stack:Add(UI:Note(content, "Each character remembers which profile it uses, so you can share one look across alts or give each its own."))
+    stack:Add(UI:Header(content, L["Profile"]))
+    stack:Add(UI:Note(content, L["Each character remembers which profile it uses, so you can share one look across alts or give each its own."]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Active profile",
+        label = L["Active profile"],
         values = function() return Config:ProfileList() end,
         get = function() return Config:CurrentProfile() end,
         set = function(value)
@@ -979,13 +980,13 @@ local function buildProfiles(content, stack)
     }))
 
     stack:Add(UI:EditBox(content, {
-        label = "New profile name",
+        label = L["New profile name"],
         get = function() return newName end,
         set = function(value) newName = value end,
     }))
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Create", width = 100, onClick = function()
+        { text = L["Create"], width = 100, onClick = function()
             local ok, err = Config:NewProfile(newName)
             if ok then
                 Config:SetProfile(newName)
@@ -995,7 +996,7 @@ local function buildProfiles(content, stack)
             end
             UI:RefreshAll()
         end },
-        { text = "Copy current", width = 110, onClick = function()
+        { text = L["Copy current"], width = 110, onClick = function()
             local ok, err = Config:NewProfile(newName, Config:CurrentProfile())
             if ok then
                 Config:SetProfile(newName)
@@ -1005,20 +1006,20 @@ local function buildProfiles(content, stack)
             end
             UI:RefreshAll()
         end },
-        { text = "Delete current", width = 120, onClick = function()
+        { text = L["Delete current"], width = 120, onClick = function()
             local name = Config:CurrentProfile()
             local ok, err = Config:DeleteProfile(name)
-            if not ok then SP:Print(err) else SP:Print("Deleted profile '" .. name .. "'.") end
+            if not ok then SP:Print(err) else SP:Print(L["Deleted profile '%s'."]:format(name)) end
             UI:RefreshAll()
         end },
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Share"))
-    stack:Add(UI:Note(content, "Export produces a string you can paste to someone else. Importing overwrites the profile you name below, or the active one if you leave it blank."))
+    stack:Add(UI:Header(content, L["Share"]))
+    stack:Add(UI:Note(content, L["Export produces a string you can paste to someone else. Importing overwrites the profile you name below, or the active one if you leave it blank."]))
 
     local exportBox = UI:EditBox(content, {
-        label = "Export string",
+        label = L["Export string"],
         multiline = true,
         manualCommit = true,
         selectAllOnClick = true,
@@ -1028,7 +1029,7 @@ local function buildProfiles(content, stack)
     stack:Add(exportBox)
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Generate export", width = 140, onClick = function()
+        { text = L["Generate export"], width = 140, onClick = function()
             exportBox.edit:SetText(Config:Export() or "")
             exportBox.edit:HighlightText()
             exportBox.edit:SetFocus()
@@ -1036,7 +1037,7 @@ local function buildProfiles(content, stack)
     }))
 
     local importBox = UI:EditBox(content, {
-        label = "Import string",
+        label = L["Import string"],
         multiline = true,
         manualCommit = true,
         get = function() return importText end,
@@ -1045,16 +1046,16 @@ local function buildProfiles(content, stack)
     stack:Add(importBox)
 
     stack:Add(UI:EditBox(content, {
-        label = "Import into profile (blank = active)",
+        label = L["Import into profile (blank = active)"],
         get = function() return importTarget end,
         set = function(value) importTarget = value end,
     }))
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Import", width = 120, onClick = function()
+        { text = L["Import"], width = 120, onClick = function()
             local name, err = Config:Import(importBox.edit:GetText(), importTarget)
             if name then
-                SP:Print("Imported into profile '" .. name .. "'.")
+                SP:Print(L["Imported into profile '%s'."]:format(name))
                 importBox.edit:SetText("")
             else
                 SP:Print(err)
@@ -1070,37 +1071,37 @@ end
 local function buildAnnounce(content, stack)
     local whisperTarget = ""
 
-    stack:Add(UI:Header(content, "Announce"))
-    stack:Add(UI:Note(content, "Sends a summary of your gear to chat. Nothing is ever sent automatically - only when you use the button, the slash command or the right-click menu."))
+    stack:Add(UI:Header(content, L["Announce"]))
+    stack:Add(UI:Note(content, L["Sends a summary of your gear to chat. Nothing is ever sent automatically - only when you use the button, the slash command or the right-click menu."]))
 
     stack:Add(UI:Dropdown(content, {
-        label = "Send to", path = "announce.channel", values = SP.Announce.channels,
+        label = L["Send to"], path = "announce.channel", values = SP.Announce.channels,
     }))
     stack:Add(UI:EditBox(content, {
-        label = "Whisper to (for the Whisper channel)",
+        label = L["Whisper to (for the Whisper channel)"],
         get = function() return whisperTarget end,
         set = function(value) whisperTarget = value end,
     }))
-    stack:Add(UI:EditBox(content, { label = "Prefix", path = "announce.prefix" }))
+    stack:Add(UI:EditBox(content, { label = L["Prefix"], path = "announce.prefix" }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "Include"))
+    stack:Add(UI:Header(content, L["Include"]))
 
-    stack:Add(UI:Check(content, { label = "Item level", path = "announce.includeItemLevel" }))
-    stack:Add(UI:Check(content, { label = "Specialization", path = "announce.includeSpec" }))
-    stack:Add(UI:Check(content, { label = "Stats", path = "announce.includeStats" }))
-    stack:Add(UI:Check(content, { label = "Stat priority", path = "announce.includePriority" }))
-    stack:Add(UI:Check(content, { label = "Session peak speed", path = "announce.includeSpeed" }))
-    stack:Add(UI:Check(content, { label = "Missing enchants and sockets", path = "announce.includeGear" }))
+    stack:Add(UI:Check(content, { label = L["Item level"], path = "announce.includeItemLevel" }))
+    stack:Add(UI:Check(content, { label = L["Specialization"], path = "announce.includeSpec" }))
+    stack:Add(UI:Check(content, { label = L["Stats"], path = "announce.includeStats" }))
+    stack:Add(UI:Check(content, { label = L["Stat priority"], path = "announce.includePriority" }))
+    stack:Add(UI:Check(content, { label = L["Session peak speed"], path = "announce.includeSpeed" }))
+    stack:Add(UI:Check(content, { label = L["Missing enchants and sockets"], path = "announce.includeGear" }))
 
-    stack:Add(UI:Note(content, "The game protects most combat stats and will not let any addon send them to chat, so those are left out automatically. Item level, spec, speed and gear warnings all go through. If a future patch unprotects a stat it will start appearing with no change needed."))
+    stack:Add(UI:Note(content, L["The game protects most combat stats and will not let any addon send them to chat, so those are left out automatically. Item level, spec, speed and gear warnings all go through. If a future patch unprotects a stat it will start appearing with no change needed."]))
 
     stack:Gap(10)
     stack:Add(UI:ButtonRow(content, {
-        { text = "Preview", width = 110, onClick = function()
+        { text = L["Preview"], width = 110, onClick = function()
             SP.Announce:Send("SELF")
         end },
-        { text = "Announce now", width = 130, onClick = function()
+        { text = L["Announce now"], width = 130, onClick = function()
             SP.Announce:Send(SP.db.announce.channel, whisperTarget)
         end },
     }))
@@ -1110,15 +1111,15 @@ end
 -- PAGE: GEAR
 --------------------------------------------------------------------------------
 local function buildGear(content, stack)
-    stack:Add(UI:Header(content, "Equipped gear"))
-    stack:Add(UI:Note(content, "Item data is not protected by the game, so unlike the combat stats this can be read in full."))
+    stack:Add(UI:Header(content, L["Equipped gear"]))
+    stack:Add(UI:Note(content, L["Item data is not protected by the game, so unlike the combat stats this can be read in full."]))
 
     stack:Add(UI:ButtonRow(content, {
-        { text = "Refresh", width = 110, onClick = function() UI:RefreshAll() end },
-        { text = "Print report", width = 130, onClick = function() SP.Gear:PrintReport() end },
+        { text = L["Refresh"], width = 110, onClick = function() UI:RefreshAll() end },
+        { text = L["Print report"], width = 130, onClick = function() SP.Gear:PrintReport() end },
     }))
 
-    local summary = UI:Note(content, "")
+    local summary = UI:Note(content, L[""])
     stack:Add(summary)
 
     -- Reusable rows, rebuilt on every refresh.
@@ -1228,18 +1229,18 @@ local function buildAutomation(content, stack)
     local function settings() return SP.AutoProfile:Settings() end
 
     local function profileChoices()
-        local out = { { name = "(no rule)", value = "" } }
+        local out = { { name = L["(no rule)"], value = "" } }
         for _, name in ipairs(Config:ProfileList()) do
             out[#out + 1] = { name = name, value = name }
         end
         return out
     end
 
-    stack:Add(UI:Header(content, "Automatic profile switching"))
-    stack:Add(UI:Note(content, "Rules are saved per character. A content rule beats a specialization rule, so you can keep a spec profile generally and still force a different one inside a raid. Anything left as '(no rule)' is ignored."))
+    stack:Add(UI:Header(content, L["Automatic profile switching"]))
+    stack:Add(UI:Note(content, L["Rules are saved per character. A content rule beats a specialization rule, so you can keep a spec profile generally and still force a different one inside a raid. Anything left as '(no rule)' is ignored."]))
 
     stack:Add(UI:Check(content, {
-        label = "Switch profiles automatically",
+        label = L["Switch profiles automatically"],
         get = function() return settings().enabled end,
         set = function(value)
             settings().enabled = value
@@ -1248,7 +1249,7 @@ local function buildAutomation(content, stack)
     }))
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "By content"))
+    stack:Add(UI:Header(content, L["By content"]))
 
     for _, context in ipairs(SP.AutoProfile.contexts) do
         stack:Add(UI:Dropdown(content, {
@@ -1263,10 +1264,10 @@ local function buildAutomation(content, stack)
     end
 
     stack:Gap(10)
-    stack:Add(UI:Header(content, "By specialization"))
-    stack:Add(UI:Note(content, "Only your current specialization is listed. Switch spec and come back to set a rule for another one."))
+    stack:Add(UI:Header(content, L["By specialization"]))
+    stack:Add(UI:Note(content, L["Only your current specialization is listed. Switch spec and come back to set a rule for another one."]))
 
-    local specLabel = UI:Note(content, "")
+    local specLabel = UI:Note(content, L[""])
     stack:Add(specLabel)
     specLabel.Refresh = function(self)
         local _, specName = SP:GetCurrentPriority()
@@ -1275,7 +1276,7 @@ local function buildAutomation(content, stack)
     UI.widgets[#UI.widgets + 1] = specLabel
 
     stack:Add(UI:Dropdown(content, {
-        label = "Profile for this specialization",
+        label = L["Profile for this specialization"],
         values = profileChoices,
         get = function()
             local _, _, specID = SP:GetCurrentPriority()
@@ -1292,25 +1293,25 @@ local function buildAutomation(content, stack)
 
     stack:Gap(10)
     stack:Add(UI:ButtonRow(content, {
-        { text = "Apply rules now", width = 150, onClick = function()
+        { text = L["Apply rules now"], width = 150, onClick = function()
             -- Apply() returns false both when nothing matches and when the match
             -- is the profile you are already on; resolve first so the two cases
             -- read differently instead of both claiming "no rule matches".
             local target = SP.AutoProfile:Resolve()
             if not target then
-                SP:Print("no rule matches your current spec or location.")
+                SP:Print(L["no rule matches your current spec or location."])
             elseif target == SP.Config:CurrentProfile() then
-                SP:Print("already on '" .. target .. "', the profile your rules call for.")
+                SP:Print(L["already on '%s', the profile your rules call for."]:format(target))
             else
                 SP.AutoProfile:Apply()
             end
         end },
-        { text = "Clear all rules", width = 140, onClick = function()
+        { text = L["Clear all rules"], width = 140, onClick = function()
             local s = settings()
             wipe(s.bySpec)
             wipe(s.byContext)
             UI:RefreshAll()
-            SP:Print("cleared this character's automatic rules.")
+            SP:Print(L["cleared this character's automatic rules."])
         end },
     }))
 end
@@ -1319,19 +1320,19 @@ end
 -- PAGE REGISTRY
 --------------------------------------------------------------------------------
 local PAGES = {
-    { id = "general",  name = "General",     build = buildGeneral },
-    { id = "panel",    name = "Panel",       build = buildPanel },
-    { id = "bars",     name = "Rows & Bars", build = buildBars },
-    { id = "fonts",    name = "Fonts",       build = buildFonts },
-    { id = "stats",    name = "Stats",       build = buildStats },
-    { id = "sections", name = "Sections",    build = buildSections },
-    { id = "footer",   name = "Footer",      build = buildFooter },
-    { id = "priority", name = "Priority",    build = buildPriority },
-    { id = "gear",     name = "Gear",        build = buildGear },
-    { id = "announce", name = "Announce",    build = buildAnnounce },
-    { id = "presets",  name = "Presets",     build = buildPresets },
-    { id = "profiles", name = "Profiles",    build = buildProfiles },
-    { id = "auto",     name = "Automation",  build = buildAutomation },
+    { id = "general",  name = L["General"],     build = buildGeneral },
+    { id = "panel",    name = L["Panel"],       build = buildPanel },
+    { id = "bars",     name = L["Rows & Bars"], build = buildBars },
+    { id = "fonts",    name = L["Fonts"],       build = buildFonts },
+    { id = "stats",    name = L["Stats"],       build = buildStats },
+    { id = "sections", name = L["Sections"],    build = buildSections },
+    { id = "footer",   name = L["Footer"],      build = buildFooter },
+    { id = "priority", name = L["Priority"],    build = buildPriority },
+    { id = "gear",     name = L["Gear"],        build = buildGear },
+    { id = "announce", name = L["Announce"],    build = buildAnnounce },
+    { id = "presets",  name = L["Presets"],     build = buildPresets },
+    { id = "profiles", name = L["Profiles"],    build = buildProfiles },
+    { id = "auto",     name = L["Automation"],  build = buildAutomation },
 }
 
 function Options:ShowPage(id)
@@ -1381,10 +1382,10 @@ local previewWindow
 -- A dark panel on a dark backdrop is unreadable, and a translucent one can only
 -- be judged against something. Cycle the preview background to check both.
 local PREVIEW_BACKDROPS = {
-    { name = "Dark",  color = { 0.03, 0.03, 0.04, 0.94 } },
-    { name = "Grey",  color = { 0.40, 0.40, 0.43, 0.95 } },
-    { name = "Light", color = { 0.88, 0.88, 0.90, 0.96 } },
-    { name = "Game",  color = { 0, 0, 0, 0 } },
+    { name = L["Dark"],  color = { 0.03, 0.03, 0.04, 0.94 } },
+    { name = L["Grey"],  color = { 0.40, 0.40, 0.43, 0.95 } },
+    { name = L["Light"], color = { 0.88, 0.88, 0.90, 0.96 } },
+    { name = L["Game"],  color = { 0, 0, 0, 0 } },
 }
 
 local function applyPreviewBackdrop()
