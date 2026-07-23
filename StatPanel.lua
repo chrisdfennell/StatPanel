@@ -424,7 +424,12 @@ local function buildFormat(template, cfg, label, extra)
         elseif token == "peak" then
             return escapePercent(string.format(numberFmt, sessionPeakSpeed))
         elseif token == "yards" then
-            return escapePercent(string.format("%.1f", extra or 0))
+            -- `extra` is the raw yards/sec, which for the Speed stat is the
+            -- secret velocity itself when the game protects it (GetSpeed returns
+            -- it unchanged). Unlike $value/$rating this token is baked in here by
+            -- string.format rather than deferred to SetFormattedText, so it must
+            -- be reduced to a plain number first or it raises every frame.
+            return escapePercent(string.format("%.1f", plainNumber(extra) or 0))
         end
     end)
 
@@ -438,6 +443,19 @@ local function formatArgs(order, value, rating)
         args[index] = (which == "value") and value or rating
     end
     return args, #order
+end
+
+-- string.format with a user-authored template throws if the template carries a
+-- stray or extra specifier ("%d %d", "%s"). The rank and footer templates come
+-- straight from free-text option boxes and are formatted every frame, so one
+-- typo would error continuously. Fall back to the default template, then to the
+-- bare value, so a bad template degrades to plain text instead of a flood.
+local function safeFormat(template, fallback, value)
+    local ok, out = pcall(string.format, template, value)
+    if ok then return out end
+    ok, out = pcall(string.format, fallback, value)
+    if ok then return out end
+    return tostring(value)
 end
 
 --------------------------------------------------------------------------------
@@ -524,6 +542,23 @@ function Panel:Rebuild()
     if self.rebuilding then return end
     self.rebuilding = true
 
+    -- The styling pass applies many saved values in one go. A single bad one --
+    -- a font that has since been uninstalled, or a wrong-typed key from an
+    -- imported profile -- would raise partway through and leave `rebuilding`
+    -- stuck true, turning every future Rebuild into a permanent no-op that not
+    -- even switching to a good profile could clear (only /reload would). Run the
+    -- body under pcall so the flag always resets and the panel stays
+    -- recoverable, and say what happened rather than failing silently.
+    local ok, err = pcall(self.RebuildInner, self)
+    self.rebuilding = false
+    if not ok then
+        SP:Print("a display setting could not be applied (" .. tostring(err) .. ").")
+    end
+
+    self:Update(0, true)
+end
+
+function Panel:RebuildInner()
     local db = SP.db
     local p, b, f = db.panel, db.bars, db.font
     local textStyle = (b.style == "text")
@@ -730,9 +765,6 @@ function Panel:Rebuild()
     self:ApplyPosition()
     self:UpdateAlpha(true)
     self:FitPreview()
-
-    self.rebuilding = false
-    self:Update(0, true)
 end
 
 --------------------------------------------------------------------------------
@@ -1158,7 +1190,7 @@ function Panel:Update(elapsed, force)
                 if b.showLabel then
                     local prefix = ""
                     if b.showRank and row.rank then
-                        prefix = string.format(b.rankFormat or "%d  ", row.rank)
+                        prefix = safeFormat(b.rankFormat or "%d  ", "%d  ", row.rank)
                     end
                     lineFmt = labelColor .. escapePercent(prefix .. label) .. "|r"
                 end
@@ -1175,7 +1207,7 @@ function Panel:Update(elapsed, force)
                 if b.showLabel then
                     local prefix = ""
                     if b.showRank and row.rank then
-                        prefix = string.format(b.rankFormat or "%d  ", row.rank)
+                        prefix = safeFormat(b.rankFormat or "%d  ", "%d  ", row.rank)
                     end
                     row.label:SetText(prefix .. label)
                 end
@@ -1378,24 +1410,24 @@ function Panel:BuildFooter()
 
     if footer.showFPS then
         local fps = GetFramerate() or 0
-        add(string.format(footer.fpsFormat or "%.0f fps", fps),
+        add(safeFormat(footer.fpsFormat or "%.0f fps", "%.0f fps", fps),
             qualityColor(fps, footer.fpsGood or 60, footer.fpsBad or 30, true))
     end
 
     if footer.showHomeLatency or footer.showWorldLatency then
         local _, _, home, world = GetNetStats()
         if footer.showHomeLatency then
-            add(string.format(footer.homeFormat or "%d ms", home or 0),
+            add(safeFormat(footer.homeFormat or "%d ms", "%d ms", home or 0),
                 qualityColor(home or 0, footer.msGood or 100, footer.msBad or 250, false))
         end
         if footer.showWorldLatency then
-            add(string.format(footer.worldFormat or "%d ms", world or 0),
+            add(safeFormat(footer.worldFormat or "%d ms", "%d ms", world or 0),
                 qualityColor(world or 0, footer.msGood or 100, footer.msBad or 250, false))
         end
     end
 
     if footer.showMemory then
-        add(string.format(footer.memoryFormat or "%.1f mb", GetMemoryKB() / 1024))
+        add(safeFormat(footer.memoryFormat or "%.1f mb", "%.1f mb", GetMemoryKB() / 1024))
     end
 
     return table.concat(parts, footer.separator or "  |  ")
@@ -1464,15 +1496,19 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PLAYER_DEAD")
 eventFrame:RegisterEvent("PLAYER_ALIVE")
 eventFrame:RegisterEvent("PLAYER_UNGHOST")
-eventFrame:RegisterEvent("UNIT_ENTERED_VEHICLE")
-eventFrame:RegisterEvent("UNIT_EXITED_VEHICLE")
 eventFrame:RegisterEvent("PET_BATTLE_OPENING_START")
 eventFrame:RegisterEvent("PET_BATTLE_CLOSE")
+-- These three carry a unit and fire for every group member, not just you. The
+-- handler ignores the unit, so an ally respeccing or taking a vehicle would
+-- otherwise force a full Rebuild / visibility recompute on your panel. Filter
+-- to "player" at registration so those never reach us.
+eventFrame:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+eventFrame:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
+eventFrame:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
 
 eventFrame:SetScript("OnEvent", function(_, event)
     if not SP.db or not frame then return end

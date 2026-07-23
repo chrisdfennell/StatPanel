@@ -294,6 +294,54 @@ local function fillDefaults(dst, src)
     return dst
 end
 
+-- Coerces any stored value whose type no longer matches the schema back to the
+-- default. fillDefaults only fills *missing* keys; a key that is present but the
+-- wrong type -- a string where a width belongs, a table where a scalar belongs,
+-- a color array with a non-number channel -- survives it untouched and then
+-- raises inside SetScale / ipairs / SetStatusBarColor at render time. An import
+-- string from a stranger or a hand-edited SavedVariables is the usual source,
+-- and because the bad profile is saved and active it re-raises on every login.
+--
+-- This is purely coercive: it never *adds* a key (a missing value stays nil for
+-- fillDefaults to handle), it only replaces one of the wrong type. It runs on
+-- every Activate, so imports, v1 upgrades and hand-edits are all covered at the
+-- one choke point every profile passes through.
+local function sanitize(stored, schema)
+    if type(schema) ~= "table" then
+        -- Leaf: the types must match. A missing value is left for fillDefaults.
+        if stored ~= nil and type(stored) ~= type(schema) then return deepCopy(schema) end
+        return stored
+    end
+
+    if type(stored) ~= "table" then
+        -- A table was expected (a subtree, a section list, a color array) and a
+        -- scalar -- or nothing -- was stored. There is nothing to salvage.
+        if stored ~= nil then return deepCopy(schema) end
+        return stored
+    end
+
+    -- A fixed-length array of scalars (every color is {r,g,b,a}). If any slot is
+    -- missing or the wrong type the whole array is untrustworthy -- and this is
+    -- the only place a NO_MERGE color array gets a short or garbled copy
+    -- repaired, since fillDefaults deliberately won't reach inside one.
+    local n = #schema
+    if n > 0 and type(schema[1]) ~= "table" then
+        for i = 1, n do
+            if type(stored[i]) ~= type(schema[i]) then return deepCopy(schema) end
+        end
+        return stored
+    end
+
+    -- A subtree, or a variable-length list of tables (sections). Walk the schema
+    -- keys and coerce each in place; unknown keys the user carries are left be,
+    -- and deleted list entries stay deleted (nil coerces to nil).
+    for k, v in pairs(schema) do
+        stored[k] = sanitize(stored[k], v)
+    end
+    return stored
+end
+Config.Sanitize = function(_, profile) return sanitize(profile, DEFAULTS) end
+
 --------------------------------------------------------------------------------
 -- PROFILE MANAGEMENT
 --------------------------------------------------------------------------------
@@ -308,7 +356,13 @@ function Config:Init()
     if type(SPAddonDB) ~= "table" then SPAddonDB = {} end
     local db = SPAddonDB
 
-    db.version  = db.version or DB_VERSION
+    -- The schema version the stored DB was written by. A v1 database predates
+    -- versioning entirely, so an absent stamp means "1", not "current" -- the
+    -- old code stamped it to current up front, which is exactly why the field
+    -- was never usefully read. Capture it before anything else touches the DB,
+    -- gate migrations on it, and stamp forward once at the end.
+    local fromVersion = db.version or 1
+
     db.profiles = db.profiles or {}
     db.chars    = db.chars or {}
     -- Account-wide settings that deliberately sit outside profiles: switching
@@ -318,9 +372,10 @@ function Config:Init()
     if db.global.livePreview == nil then db.global.livePreview = true end
     db.global.previewBG = db.global.previewBG or 1
 
-    -- Migrate a pre-profile (v1) database: the old flat keys become the seed of
-    -- the Default profile so nobody loses their toggles on upgrade.
-    if db.showStatPanel ~= nil or db.textColor ~= nil then
+    -- v1 -> v2: a pre-profile database keeps its settings as flat top-level keys.
+    -- v1 never wrote a version, so the legacy keys are the real discriminator;
+    -- the version gate just keeps this from re-running once a DB has moved on.
+    if fromVersion < 2 and (db.showStatPanel ~= nil or db.textColor ~= nil) then
         local legacy = {}
         legacy.panel = { hideInCombat = db.hideInCombat }
         legacy.footer = { showFPS = db.showFPS }
@@ -334,8 +389,13 @@ function Config:Init()
         db.showFPS, db.showHomeLatency, db.showWorldLatency = nil, nil, nil
         db.showEnhancements, db.showDefense, db.showSupplementary = nil, nil, nil
         db.updateInterval, db.fontSize = nil, nil
-        db.version = DB_VERSION
     end
+
+    -- Future schema steps hook in here, gated the same way:
+    --   if fromVersion < 3 then ... end
+    -- Everything below runs on every load regardless of version and must stay
+    -- idempotent. Once any applicable migration has run, the DB is current.
+    db.version = DB_VERSION
 
     if not db.profiles["Default"] then
         db.profiles["Default"] = deepCopy(DEFAULTS)
@@ -386,8 +446,13 @@ function Config:Activate(name)
 
     db.chars[charKey()] = name
     self.current = name
-    -- fillDefaults returns the stored profile itself, so the repair persists.
-    SP.db = fillDefaults(db.profiles[name], DEFAULTS)
+    -- Coerce wrong-typed values back to defaults before filling gaps, so a
+    -- corrupt imported/hand-edited profile can't reach a Set* call and crash the
+    -- render. Both operate on and return the stored profile itself, so the
+    -- repairs persist.
+    local stored = sanitize(db.profiles[name], DEFAULTS)
+    db.profiles[name] = stored
+    SP.db = fillDefaults(stored, DEFAULTS)
     repairVisibility(SP.db.panel)
     return SP.db
 end
@@ -595,6 +660,14 @@ function Config:Import(text, targetName)
     if type(text) ~= "string" then return nil, "Nothing to import." end
 
     text = text:gsub("%s+", "")
+
+    -- A real profile serializes to a few KB. Cap the input well above that but
+    -- far below anything that could hurt: the sandbox stops code from running,
+    -- but it can't stop a table constructor like {x=("a"):rep(2^30)} from
+    -- allocating gigabytes during pcall, and string methods resolve even in an
+    -- empty environment. Reject oversize strings before they reach loadstring.
+    if #text > 262144 then return nil, "That import string is too large to be a profile." end
+
     local payload = text:match("^SP1!(.+)$")
     if not payload then return nil, "That doesn't look like a StatPanel export string." end
 

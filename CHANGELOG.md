@@ -5,6 +5,53 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.3] - 2026-07-22
+
+### Fixed
+
+- **The gear audit reported missing enchants on every slot, even on a fully
+  enchanted character.** `parseLink` read item links with a `gmatch` pattern
+  that, in WoW's Lua 5.1, emits an empty capture after every colon -- so the
+  fields came out shifted and the enchant always read back as 0. Every
+  enchantable slot showed "no enchant", and `/sp announce` with gear broadcast a
+  phantom "8 missing enchants" to chat. Links are split with `strsplit` now,
+  which keeps the fields aligned.
+- **A render error could freeze the panel until `/reload`.** `Panel:Rebuild`
+  set a re-entrancy flag and cleared it only at the very end, with nothing
+  protecting the span between. Any error in that stretch left the flag stuck,
+  turning every future rebuild into a permanent no-op that not even switching to
+  a good profile could clear. The body runs under `pcall` now, so the flag
+  always resets and the cause is reported instead of the panel silently dying.
+- **A pasted import string with a wrong-typed value could brick the panel for
+  good.** Imported and hand-edited profiles are type-checked against the schema
+  on load: a value of the wrong type -- a string where a width belongs, a color
+  channel that isn't a number -- is coerced back to its default before it can
+  reach a `Set*` call and crash the render. With the freeze fix above, a bad
+  string can no longer lock the panel across logins.
+- **"Import into profile" shared its text box with "New profile name."** Typing
+  an import target overwrote the create name, so the next Create made a
+  wrongly-named profile. They are independent fields now.
+- **The `$yards` value token could error every frame** when movement speed is
+  delivered as a protected value, because it was formatted directly rather than
+  through the secret-safe path. It degrades to 0 like the other guarded reads.
+
+### Changed
+
+- **Presets apply as complete looks.** A preset is a sparse table, so switching
+  between two left behind any key the new one didn't mention -- Neon's spark and
+  pink crit bar survived a switch to Modern Bars. Applying a preset now resets
+  the look to defaults first, preserving only your position, visibility rules
+  and account preferences. Per-stat color overrides are deep-copied too, so two
+  profiles on the same preset no longer share (and mutate) one color table.
+- Spec-change and vehicle events are filtered to the player. They carry a unit
+  and fire for every group member, so an ally respeccing or taking a vehicle was
+  forcing a full relayout on your panel.
+- The rank and footer format strings -- free-text, and formatted every frame --
+  are guarded: a stray specifier falls back to the default instead of erroring
+  continuously.
+- Import strings are capped in size, and the database version stamp is now read
+  to gate migration instead of being written and never looked at.
+
 ## [2.0.2] - 2026-07-22
 
 ### Fixed

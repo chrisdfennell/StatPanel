@@ -486,8 +486,13 @@ function UI:Color(parent, opts)
     local hasAlpha = opts.hasAlpha ~= false
 
     local function getColor()
-        if opts.get then return opts.get() end
-        return Config:GetColor(opts.path)
+        local r, g, b, a
+        if opts.get then r, g, b, a = opts.get() else r, g, b, a = Config:GetColor(opts.path) end
+        -- A custom get (Fonts/Stats pages) reads a raw color array and can hand
+        -- back nil channels from a short or malformed array; SetBackdropColor and
+        -- the color picker both choke on a nil. Fall back to opaque white so the
+        -- swatch always renders and stays clickable.
+        return r or 1, g or 1, b or 1, a or 1
     end
 
     local function setColor(r, g, b, a)

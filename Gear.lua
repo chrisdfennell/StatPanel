@@ -60,10 +60,15 @@ local function parseLink(link)
     local payload = link:match("|Hitem:([%-%d:]+)|h")
     if not payload then return nil end
 
+    -- Split on the colon with strsplit rather than gmatch. In WoW's Lua 5.1
+    -- `gmatch("([^:]*)")` yields a spurious empty capture after every delimiter,
+    -- so the fields come out shifted by one and the enchant (field 2) always
+    -- reads back as the empty string, i.e. 0 -- every enchanted item looked
+    -- unenchanted. strsplit keeps empty fields in place without the phantom
+    -- captures, so the positions line up with the link layout above.
+    local raw = { strsplit(":", payload) }
     local fields = {}
-    for value in payload:gmatch("([^:]*)") do
-        fields[#fields + 1] = tonumber(value) or 0
-    end
+    for i = 1, #raw do fields[i] = tonumber(raw[i]) or 0 end
 
     return {
         itemID   = fields[1] or 0,
