@@ -1464,6 +1464,13 @@ end
 function Options:StartPreview()
     if not SPAddonDB.global.livePreview then return end
 
+    -- The canvas OnShow fires once transiently when the category is registered
+    -- at login, before the Settings window is ever opened. Starting the preview
+    -- then docks the panel in a preview box with no options behind it, and it
+    -- sits there until you open and close the options to trigger a real teardown.
+    -- Only preview when the Settings window is genuinely open.
+    if _G.SettingsPanel and not _G.SettingsPanel:IsShown() then return end
+
     ensurePreviewWindow()
     anchorPreview()
     previewWindow:Show()
