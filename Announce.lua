@@ -53,9 +53,9 @@ function Announce:Build()
         overall, equipped = plain(overall), plain(equipped)
         if equipped then
             if overall and math.abs(overall - equipped) >= 0.05 then
-                parts[#parts + 1] = string.format("iLvl %.2f (%.2f overall)", equipped, overall)
+                parts[#parts + 1] = string.format(L["iLvl %.2f (%.2f overall)"], equipped, overall)
             else
-                parts[#parts + 1] = string.format("iLvl %.2f", equipped)
+                parts[#parts + 1] = string.format(L["iLvl %.2f"], equipped)
             end
         else
             dropped = dropped + 1
@@ -96,13 +96,13 @@ function Announce:Build()
 
     if cfg.includePriority then
         local priority = SP:GetCurrentPriority()
-        parts[#parts + 1] = "priority " .. table.concat(priority, " > ")
+        parts[#parts + 1] = L["priority %s"]:format(table.concat(priority, " > "))
     end
 
     if cfg.includeSpeed then
         local peak = plain(SP.GetPeakSpeed and SP.GetPeakSpeed())
         if peak and peak > 0 then
-            parts[#parts + 1] = string.format("peak speed %.0f%%", peak)
+            parts[#parts + 1] = string.format(L["peak speed %.0f%%"], peak)
         end
     end
 
@@ -111,15 +111,13 @@ function Announce:Build()
         if audit then
             local issues = {}
             if audit.missingEnchants > 0 then
-                issues[#issues + 1] = audit.missingEnchants .. " missing enchant"
-                    .. (audit.missingEnchants == 1 and "" or "s")
+                issues[#issues + 1] = L["%d missing enchant(s)"]:format(audit.missingEnchants)
             end
             if audit.emptySockets > 0 then
-                issues[#issues + 1] = audit.emptySockets .. " empty socket"
-                    .. (audit.emptySockets == 1 and "" or "s")
+                issues[#issues + 1] = L["%d empty socket(s)"]:format(audit.emptySockets)
             end
             if audit.tierCount then
-                parts[#parts + 1] = string.format("%d/%d tier set", audit.tierCount, audit.tierTotal)
+                parts[#parts + 1] = string.format(L["%d/%d tier set"], audit.tierCount, audit.tierTotal)
             end
             if #issues > 0 then
                 parts[#parts + 1] = table.concat(issues, ", ")

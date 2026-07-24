@@ -8,6 +8,7 @@
 -- an enchant or left a socket empty.
 
 local addonName, SP = ...
+local L = SP.L
 
 local Gear = {}
 SP.Gear = Gear
@@ -261,21 +262,21 @@ end
 function Gear:PrintReport()
     local audit = self:Audit()
 
-    SP:Print("gear audit")
+    SP:Print(L["gear audit"])
 
     for _, slot in ipairs(audit.slots) do
         if slot.empty then
             if slot.id ~= 17 then
-                print(string.format("  %-12s %s", slot.name, colorize("empty", 0.9, 0.3, 0.3)))
+                print(string.format("  %-12s %s", slot.name, colorize(L["empty"], 0.9, 0.3, 0.3)))
             end
         else
             local notes = {}
-            if slot.needsEnchant then notes[#notes + 1] = colorize("no enchant", 0.95, 0.6, 0.25) end
+            if slot.needsEnchant then notes[#notes + 1] = colorize(L["no enchant"], 0.95, 0.6, 0.25) end
             if slot.emptySockets > 0 then
-                notes[#notes + 1] = colorize(slot.emptySockets .. " empty socket", 0.95, 0.6, 0.25)
+                notes[#notes + 1] = colorize(L["%d empty socket(s)"]:format(slot.emptySockets), 0.95, 0.6, 0.25)
             end
             if slot.lowGems > 0 then
-                notes[#notes + 1] = colorize(slot.lowGems .. " rare gem", 0.95, 0.6, 0.25)
+                notes[#notes + 1] = colorize(L["%d rare gem(s)"]:format(slot.lowGems), 0.95, 0.6, 0.25)
             end
 
             -- The upgrade track sits after the item level, dimmed when maxed and
@@ -290,7 +291,7 @@ function Gear:PrintReport()
 
             local marker = ""
             if audit.lowest and slot.id == audit.lowest.id then
-                marker = colorize("  <- lowest", 0.6, 0.6, 0.65)
+                marker = colorize("  <- " .. L["lowest"], 0.6, 0.6, 0.65)
             end
 
             print(string.format("  %-12s %d%s%s%s", slot.name, slot.itemLevel, track,
@@ -301,22 +302,22 @@ function Gear:PrintReport()
     local overall, equipped = GetAverageItemLevel()
     equipped = SP.PlainNumber(equipped)
     if equipped then
-        print(string.format("  %-12s %.2f", "Equipped", equipped))
+        print(string.format("  %-12s %.2f", L["Equipped"], equipped))
     end
 
     if audit.tierCount then
         local full = audit.tierCount >= audit.tierTotal
-        print("  " .. colorize(string.format("Tier set    %d/%d", audit.tierCount, audit.tierTotal),
+        print("  " .. colorize(string.format(L["Tier set    %d/%d"], audit.tierCount, audit.tierTotal),
             full and 0.35 or 0.6, full and 0.85 or 0.6, full and 0.4 or 0.65))
     end
     if audit.notMaxUpgrade > 0 then
-        print("  " .. colorize(audit.notMaxUpgrade .. " item"
-            .. (audit.notMaxUpgrade == 1 and "" or "s") .. " not fully upgraded", 0.6, 0.6, 0.65))
+        print("  " .. colorize(L["%d item(s) not fully upgraded"]:format(audit.notMaxUpgrade),
+            0.6, 0.6, 0.65))
     end
 
     if audit.missingEnchants == 0 and audit.emptySockets == 0 and audit.emptySlots == 0
         and audit.lowGems == 0 then
-        print("  " .. colorize("Everything is enchanted and socketed.", 0.35, 0.85, 0.4))
+        print("  " .. colorize(L["Everything is enchanted and socketed."], 0.35, 0.85, 0.4))
     end
 end
 
@@ -329,18 +330,18 @@ function Gear:WarningText()
     local issues = {}
 
     if audit.missingEnchants > 0 then
-        issues[#issues + 1] = audit.missingEnchants .. " enchant" .. (audit.missingEnchants == 1 and "" or "s")
+        issues[#issues + 1] = L["%d enchant(s)"]:format(audit.missingEnchants)
     end
     if audit.emptySockets > 0 then
-        issues[#issues + 1] = audit.emptySockets .. " socket" .. (audit.emptySockets == 1 and "" or "s")
+        issues[#issues + 1] = L["%d socket(s)"]:format(audit.emptySockets)
     end
     if audit.lowGems > 0 then
-        issues[#issues + 1] = audit.lowGems .. " rare gem" .. (audit.lowGems == 1 and "" or "s")
+        issues[#issues + 1] = L["%d rare gem(s)"]:format(audit.lowGems)
     end
     if audit.emptySlots > 0 then
-        issues[#issues + 1] = audit.emptySlots .. " empty slot" .. (audit.emptySlots == 1 and "" or "s")
+        issues[#issues + 1] = L["%d empty slot(s)"]:format(audit.emptySlots)
     end
 
     if #issues == 0 then return nil end
-    return "Missing: " .. table.concat(issues, ", ")
+    return L["Missing: %s"]:format(table.concat(issues, ", "))
 end
