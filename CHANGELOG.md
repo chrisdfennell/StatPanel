@@ -5,6 +5,21 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.3.0] - 2026-07-23
+
+### Added
+
+- **Localization support.** The addon had none -- every user-facing string was
+  an inline English literal, so it could never be translated. There is now a
+  tiny locale table (`SP.L`, no embedded library): the English string is the
+  key, and a translation file for the client's language overlays it, with any
+  untranslated string falling back to English. Every user-facing string -- the
+  options window, the panel tooltip and stat names, the slash commands, the
+  right-click menu, the gear report and the chat announce -- is routed through
+  it. Shipping English-complete and translation-ready; `Locales/README.md`
+  documents how to add a language. Identifiers (config keys, value-format
+  tokens, preset names) are deliberately left untranslated.
+
 ## [2.2.0] - 2026-07-23
 
 ### Added

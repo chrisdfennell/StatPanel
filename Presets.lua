@@ -5,6 +5,7 @@
 -- doesn't mention (position, visibility rules, profiles) survives untouched.
 
 local addonName, SP = ...
+local L = SP.L
 
 local Presets = {}
 SP.Presets = Presets
@@ -24,7 +25,7 @@ Presets.order = {
 Presets.list = {
     --------------------------------------------------------------------------
     ["Modern Bars"] = {
-        desc = "The stock look: flat dark panel with colored stat bars.",
+        desc = L["The stock look: flat dark panel with colored stat bars."],
         settings = {
             panel = {
                 width = 208, bgTexture = "Solid", bgColor = { 0.04, 0.04, 0.05, 0.90 },
@@ -76,7 +77,7 @@ Presets.list = {
     -- Text-only readout: one colored line per stat, rating alongside effect,
     -- and an item level header showing equipped vs. overall.
     ["Classic Text"] = {
-        desc = "No bars. One colored line per stat: 'Mastery: 285 - 10.65%'.",
+        desc = L["No bars. One colored line per stat: 'Mastery: 285 - 10.65%'."],
         settings = {
             panel = {
                 width = 190, autoWidth = true, minWidth = 150,
@@ -127,7 +128,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Compact Bars"] = {
-        desc = "Thin headerless bars for a small footprint.",
+        desc = L["Thin headerless bars for a small footprint."],
         settings = {
             panel = {
                 width = 170, autoWidth = false,
@@ -167,7 +168,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Blizzard"] = {
-        desc = "Blizzard textures and a tooltip border, to match the default UI.",
+        desc = L["Blizzard textures and a tooltip border, to match the default UI."],
         settings = {
             panel = {
                 width = 220, autoWidth = false,
@@ -188,7 +189,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Transparent"] = {
-        desc = "No background or border at all - just floating text and bars.",
+        desc = L["No background or border at all - just floating text and bars."],
         settings = {
             panel = {
                 bgColor = { 0, 0, 0, 0 }, borderStyle = "None",
@@ -204,7 +205,7 @@ Presets.list = {
     --------------------------------------------------------------------------
     -- Thin uppercase text with no chrome at all. Reads like a HUD readout.
     ["Minimal Mono"] = {
-        desc = "Tiny monochrome text, no background. Sits quietly in a corner.",
+        desc = L["Tiny monochrome text, no background. Sits quietly in a corner."],
         settings = {
             panel = {
                 width = 160, autoWidth = true, minWidth = 120,
@@ -238,7 +239,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Neon"] = {
-        desc = "High-contrast glow bars on near-black, with a value gradient.",
+        desc = L["High-contrast glow bars on near-black, with a value gradient."],
         settings = {
             panel = {
                 width = 220, autoWidth = false,
@@ -281,7 +282,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Parchment"] = {
-        desc = "Warm parchment and gold, in keeping with the default UI art.",
+        desc = L["Warm parchment and gold, in keeping with the default UI art."],
         settings = {
             panel = {
                 width = 230, autoWidth = false,
@@ -316,7 +317,7 @@ Presets.list = {
     --------------------------------------------------------------------------
     -- Role presets: these mainly change WHICH stats are on show.
     ["Tank"] = {
-        desc = "Defensive focus: armor, dodge, parry, block and avoidance up top.",
+        desc = L["Defensive focus: armor, dodge, parry, block and avoidance up top."],
         settings = {
             panel = { width = 215, autoWidth = false, showTitle = true },
             bars = { style = "bar", height = 15, spacing = 5, smooth = true },
@@ -344,7 +345,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Speedrunner"] = {
-        desc = "Big live speed readout with your session record, and little else.",
+        desc = L["Big live speed readout with your session record, and little else."],
         settings = {
             panel = {
                 width = 190, autoWidth = true, minWidth = 150,
@@ -386,7 +387,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Raid Ready"] = {
-        desc = "Secondary stats, item level and both latencies - what you check before a pull.",
+        desc = L["Secondary stats, item level and both latencies - what you check before a pull."],
         settings = {
             panel = {
                 width = 225, autoWidth = false,
@@ -432,7 +433,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Frostbound"] = {
-        desc = "Cold blues and whites on deep navy.",
+        desc = L["Cold blues and whites on deep navy."],
         settings = {
             panel = {
                 width = 210, autoWidth = false,
@@ -469,7 +470,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Ember"] = {
-        desc = "Warm reds and ambers on charcoal.",
+        desc = L["Warm reds and ambers on charcoal."],
         settings = {
             panel = {
                 width = 210, autoWidth = false,
@@ -506,7 +507,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Class Colored"] = {
-        desc = "Every bar takes your class color. Clean and unfussy.",
+        desc = L["Every bar takes your class color. Clean and unfussy."],
         settings = {
             panel = {
                 width = 200, autoWidth = false,
@@ -538,7 +539,7 @@ Presets.list = {
     -- Deliberately oversized and high contrast, for readability at a distance
     -- or on a large display.
     ["Big & Bold"] = {
-        desc = "Large, heavy, high-contrast text. Easy to read at a glance.",
+        desc = L["Large, heavy, high-contrast text. Easy to read at a glance."],
         settings = {
             panel = {
                 width = 300, autoWidth = true, minWidth = 260,
@@ -571,7 +572,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Ultra Compact"] = {
-        desc = "The smallest useful readout: four secondaries, nothing else.",
+        desc = L["The smallest useful readout: four secondaries, nothing else."],
         settings = {
             panel = {
                 width = 120, autoWidth = true, minWidth = 90,
@@ -614,7 +615,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Terminal"] = {
-        desc = "Green-on-black monospace, like a console readout.",
+        desc = L["Green-on-black monospace, like a console readout."],
         settings = {
             panel = {
                 width = 200, autoWidth = true, minWidth = 170,
@@ -653,7 +654,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["Healer"] = {
-        desc = "Throughput stats plus leech, with your primary attribute on top.",
+        desc = L["Throughput stats plus leech, with your primary attribute on top."],
         settings = {
             panel = { width = 215, autoWidth = false, showTitle = true, showDivider = true },
             bars = { style = "bar", height = 15, spacing = 5, smooth = true },
@@ -681,7 +682,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["PvP"] = {
-        desc = "Versatility first, with avoidance, dodge and speed alongside.",
+        desc = L["Versatility first, with avoidance, dodge and speed alongside."],
         settings = {
             panel = {
                 width = 210, autoWidth = false,
@@ -717,7 +718,7 @@ Presets.list = {
     -- silently falls back to our built-ins when it isn't. The `dynamic` hook
     -- below then matches your actual configured ElvUI colors.
     ["ElvUI"] = {
-        desc = "Matches ElvUI: flat dark panel, 1px black border, narrow font.",
+        desc = L["Matches ElvUI: flat dark panel, 1px black border, narrow font."],
         settings = {
             panel = {
                 width = 200, autoWidth = false,
@@ -754,7 +755,7 @@ Presets.list = {
 
     --------------------------------------------------------------------------
     ["ElvUI Transparent"] = {
-        desc = "The popular transparent ElvUI style: near-black glass, hairline border.",
+        desc = L["The popular transparent ElvUI style: near-black glass, hairline border."],
         settings = {
             panel = {
                 width = 200, autoWidth = false,
@@ -939,7 +940,7 @@ function Presets:Apply(name)
     -- broken hook must not leave the profile half-applied.
     if preset.dynamic then
         local ok, err = pcall(preset.dynamic)
-        if not ok then SP:Print("preset hook failed: " .. tostring(err)) end
+        if not ok then SP:Print(L["preset hook failed: %s"]:format(tostring(err))) end
     end
 
     SP:Refresh()

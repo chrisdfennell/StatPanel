@@ -45,6 +45,8 @@ item level in the title, session speed peak, and framerate with both latencies.*
 - Minimap button and a LibDataBroker feed
 - Gear audit: per-slot item level and upgrade track, tier set count, missing
   enchants, empty sockets and below-Epic gems
+- Fully localizable — English-complete and translation-ready (see
+  [Locales/README.md](Locales/README.md)); nothing embedded
 - Chat announce for your gear summary
 
 ---

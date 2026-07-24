@@ -6,6 +6,7 @@
 
 local addonName, SP = ...
 local NS = SP
+local L = SP.L
 
 local Media = SP.Media
 
@@ -182,11 +183,11 @@ local function resolvePrimary()
     return best, bestIndex
 end
 
-local PRIMARY_NAME = { [1] = "Strength", [2] = "Agility", [4] = "Intellect" }
+local PRIMARY_NAME = { [1] = L["Strength"], [2] = L["Agility"], [4] = L["Intellect"] }
 
 local STAT_DEFS = {
     Primary = {
-        name = "Primary",
+        name = L["Primary"],
         get = function()
             local value, index = resolvePrimary()
             -- No index means the attribute couldn't be identified; the row
@@ -194,13 +195,13 @@ local STAT_DEFS = {
             return value, value, index and PRIMARY_NAME[index]
         end,
     },
-    Strength  = { name = "Strength",  get = function() return primaryStat(1) end },
-    Agility   = { name = "Agility",   get = function() return primaryStat(2) end },
-    Stamina   = { name = "Stamina",   get = function() return primaryStat(3) end },
-    Intellect = { name = "Intellect", get = function() return primaryStat(4) end },
+    Strength  = { name = L["Strength"],  get = function() return primaryStat(1) end },
+    Agility   = { name = L["Agility"],   get = function() return primaryStat(2) end },
+    Stamina   = { name = L["Stamina"],   get = function() return primaryStat(3) end },
+    Intellect = { name = L["Intellect"], get = function() return primaryStat(4) end },
 
     Crit = {
-        name = "Crit",
+        name = L["Crit"],
         get = function(source)
             local value = (source == "bonus")
                 and num(GetCombatRatingBonus, CR_ID.Crit)
@@ -209,7 +210,7 @@ local STAT_DEFS = {
         end,
     },
     Haste = {
-        name = "Haste",
+        name = L["Haste"],
         get = function(source)
             local value = (source == "bonus")
                 and num(GetCombatRatingBonus, CR_ID.Haste)
@@ -218,7 +219,7 @@ local STAT_DEFS = {
         end,
     },
     Mastery = {
-        name = "Mastery",
+        name = L["Mastery"],
         get = function(source)
             local value = (source == "bonus")
                 and num(GetCombatRatingBonus, CR_ID.Mastery)
@@ -227,21 +228,21 @@ local STAT_DEFS = {
         end,
     },
     Versatility = {
-        name = "Versatility",
+        name = L["Versatility"],
         get = function()
             return num(GetCombatRatingBonus, CR_ID.Versatility), ratingOf("Versatility")
         end,
     },
 
-    Armor = { name = "Armor DR", get = function() return GetArmorReduction() end },
-    Dodge = { name = "Dodge",     get = function() return num(GetDodgeChance), ratingOf("Dodge") end },
-    Parry = { name = "Parry",     get = function() return num(GetParryChance), ratingOf("Parry") end },
-    Block = { name = "Block",     get = function() return num(GetBlockChance), ratingOf("Block") end },
+    Armor = { name = L["Armor DR"], get = function() return GetArmorReduction() end },
+    Dodge = { name = L["Dodge"],     get = function() return num(GetDodgeChance), ratingOf("Dodge") end },
+    Parry = { name = L["Parry"],     get = function() return num(GetParryChance), ratingOf("Parry") end },
+    Block = { name = L["Block"],     get = function() return num(GetBlockChance), ratingOf("Block") end },
 
-    Leech     = { name = "Leech",     get = function() return num(GetLifesteal), ratingOf("Leech") end },
-    Avoidance = { name = "Avoidance", get = function() return num(GetAvoidance), ratingOf("Avoidance") end },
+    Leech     = { name = L["Leech"],     get = function() return num(GetLifesteal), ratingOf("Leech") end },
+    Avoidance = { name = L["Avoidance"], get = function() return num(GetAvoidance), ratingOf("Avoidance") end },
     Speed = {
-        name = "Speed",
+        name = L["Speed"],
         get = function()
             local percent, yards = GetSpeed()
             return percent, ratingOf("Speed"), nil, yards
@@ -324,7 +325,7 @@ NS.StatPriority = {
 local DEFAULT_PRIORITY = { "Crit", "Haste", "Mastery", "Versatility" }
 
 -- Short labels for the compact priority chain line.
-local SHORT_NAME = { Crit = "Crit", Haste = "Haste", Mastery = "Mast", Versatility = "Vers" }
+local SHORT_NAME = { Crit = L["Crit"], Haste = L["Haste"], Mastery = L["Mast"], Versatility = L["Vers"] }
 
 -- Returns the priority list for the player's current spec, its name, and its ID.
 -- A user override in SP.db.customPriority always wins.
@@ -627,7 +628,7 @@ function Panel:Rebuild()
     local ok, err = pcall(self.RebuildInner, self)
     self.rebuilding = false
     if not ok then
-        SP:Print("a display setting could not be applied (" .. tostring(err) .. ").")
+        SP:Print(L["a display setting could not be applied (%s)."]:format(tostring(err)))
     end
 
     self:Update(0, true)
@@ -1155,24 +1156,24 @@ function Panel:ShowRowTooltip(row)
     -- Tooltip lines are built by us rather than by SetFormattedText, so secret
     -- numbers can't go in them. Say so plainly instead of showing nothing.
     if isSecret(value) or isSecret(rating) then
-        GameTooltip:AddLine("The game protects this value; see the panel itself.", 0.6, 0.6, 0.6, true)
+        GameTooltip:AddLine(L["The game protects this value; see the panel itself."], 0.6, 0.6, 0.6, true)
     else
-        GameTooltip:AddDoubleLine("Value", string.format("%.2f", value), 0.7, 0.7, 0.7, 1, 1, 1)
+        GameTooltip:AddDoubleLine(L["Value"], string.format("%.2f", value), 0.7, 0.7, 0.7, 1, 1, 1)
         if rating and rating > 0 then
-            GameTooltip:AddDoubleLine("Rating", commafy(rating), 0.7, 0.7, 0.7, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Rating"], commafy(rating), 0.7, 0.7, 0.7, 1, 1, 1)
         end
         if row.statName == "Speed" and not isSecret(extra) then
-            GameTooltip:AddDoubleLine("Yards/sec", string.format("%.1f", extra or 0), 0.7, 0.7, 0.7, 1, 1, 1)
-            GameTooltip:AddDoubleLine("Session peak", string.format("%.0f%%", sessionPeakSpeed), 0.7, 0.7, 0.7, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Yards/sec"], string.format("%.1f", extra or 0), 0.7, 0.7, 0.7, 1, 1, 1)
+            GameTooltip:AddDoubleLine(L["Session peak"], string.format("%.0f%%", sessionPeakSpeed), 0.7, 0.7, 0.7, 1, 1, 1)
         end
     end
     if dynamicName then
-        GameTooltip:AddDoubleLine("Attribute", dynamicName, 0.7, 0.7, 0.7, 1, 1, 1)
+        GameTooltip:AddDoubleLine(L["Attribute"], dynamicName, 0.7, 0.7, 0.7, 1, 1, 1)
     end
 
     if not SP.db.panel.locked then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("Drag to move  |  /sp for options", 0.5, 0.5, 0.5)
+        GameTooltip:AddLine(L["Drag to move  |  /sp for options"], 0.5, 0.5, 0.5)
     end
     GameTooltip:Show()
 end

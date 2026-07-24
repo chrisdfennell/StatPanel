@@ -9,6 +9,7 @@
 -- context leaves whatever profile you are on alone.
 
 local addonName, SP = ...
+local L = SP.L
 
 local AutoProfile = {}
 SP.AutoProfile = AutoProfile
@@ -38,14 +39,14 @@ local CONTEXT_FALLBACK = {
 }
 
 AutoProfile.contexts = {
-    { name = "Open world",      value = "world" },
-    { name = "Delve",           value = "delve" },
-    { name = "Dungeon",         value = "dungeon" },
-    { name = "Mythic+ dungeon", value = "mythicplus" },
-    { name = "Raid",            value = "raid" },
-    { name = "Arena",           value = "arena" },
-    { name = "Battleground",    value = "battleground" },
-    { name = "Scenario",        value = "scenario" },
+    { name = L["Open world"],      value = "world" },
+    { name = L["Delve"],           value = "delve" },
+    { name = L["Dungeon"],         value = "dungeon" },
+    { name = L["Mythic+ dungeon"], value = "mythicplus" },
+    { name = L["Raid"],            value = "raid" },
+    { name = L["Arena"],           value = "arena" },
+    { name = L["Battleground"],    value = "battleground" },
+    { name = L["Scenario"],        value = "scenario" },
 }
 
 --------------------------------------------------------------------------------
@@ -121,7 +122,7 @@ function AutoProfile:Apply(announce)
     if SP.UI then SP.UI:RefreshAll() end
 
     if announce ~= false then
-        SP:Print(string.format("switched to profile '%s' (%s rule).", target, reason))
+        SP:Print(string.format(L["switched to profile '%s' (%s rule)."], target, reason))
     end
     return true
 end
