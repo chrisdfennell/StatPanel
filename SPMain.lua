@@ -1,6 +1,7 @@
 -- SPMain.lua (Initialization and slash commands)
 
 local addonName, SP = ...
+local L = SP.L
 
 local PREFIX = "|cff88bbffStatPanel|r: "
 
@@ -50,17 +51,17 @@ end
 -- SLASH COMMANDS
 --------------------------------------------------------------------------------
 local function usage()
-    SP:Print("commands:")
-    print("  |cffffd100/sp|r - open the options")
-    print("  |cffffd100/sp toggle|r - show or hide the panel")
-    print("  |cffffd100/sp lock|r - lock or unlock dragging")
-    print("  |cffffd100/sp reset|r - move the panel back to the center")
-    print("  |cffffd100/sp preset <name>|r - apply a preset (" .. table.concat(SP.Presets.order, ", ") .. ")")
-    print("  |cffffd100/sp profile <name>|r - switch profiles")
-    print("  |cffffd100/sp peak|r - report and clear the session speed record")
-    print("  |cffffd100/sp minimap|r - show or hide the minimap button")
-    print("  |cffffd100/sp gear|r - audit enchants, sockets and item level")
-    print("  |cffffd100/sp announce [channel]|r - report your gear to chat")
+    SP:Print(L["commands:"])
+    print(L["  |cffffd100/sp|r - open the options"])
+    print(L["  |cffffd100/sp toggle|r - show or hide the panel"])
+    print(L["  |cffffd100/sp lock|r - lock or unlock dragging"])
+    print(L["  |cffffd100/sp reset|r - move the panel back to the center"])
+    print(L["  |cffffd100/sp preset <name>|r - apply a preset (%s)"]:format(table.concat(SP.Presets.order, ", ")))
+    print(L["  |cffffd100/sp profile <name>|r - switch profiles"])
+    print(L["  |cffffd100/sp peak|r - report and clear the session speed record"])
+    print(L["  |cffffd100/sp minimap|r - show or hide the minimap button"])
+    print(L["  |cffffd100/sp gear|r - audit enchants, sockets and item level"])
+    print(L["  |cffffd100/sp announce [channel]|r - report your gear to chat"])
 end
 
 SLASH_STATPANEL1 = "/sp"
@@ -75,37 +76,37 @@ SlashCmdList["STATPANEL"] = function(input)
         SP:OpenOptions()
 
     elseif command == "toggle" then
-        SP:Print(SP:TogglePanel() and "panel shown." or "panel hidden.")
+        SP:Print(SP:TogglePanel() and L["panel shown."] or L["panel hidden."])
 
     elseif command == "lock" then
         SP.db.panel.locked = not SP.db.panel.locked
-        SP:Print(SP.db.panel.locked and "panel locked." or "panel unlocked.")
+        SP:Print(SP.db.panel.locked and L["panel locked."] or L["panel unlocked."])
         SP.UI:RefreshAll()
 
     elseif command == "reset" then
         SP.db.panel.pos = SP.Config:DeepCopy(SP.Config.DEFAULTS.panel.pos)
         SP:Refresh()
-        SP:Print("position reset.")
+        SP:Print(L["position reset."])
 
     elseif command == "preset" then
         if SP.Presets:Apply(rest) then
-            SP:Print("applied the '" .. rest .. "' preset.")
+            SP:Print(L["applied the '%s' preset."]:format(rest))
             SP.UI:RefreshAll()
         else
-            SP:Print("unknown preset. Available: " .. table.concat(SP.Presets.order, ", "))
+            SP:Print(L["unknown preset. Available: %s"]:format(table.concat(SP.Presets.order, ", ")))
         end
 
     elseif command == "profile" then
         if rest ~= "" and SP.Config:SetProfile(rest) then
-            SP:Print("switched to profile '" .. rest .. "'.")
+            SP:Print(L["switched to profile '%s'."]:format(rest))
             SP.UI:RefreshAll()
         else
-            SP:Print("profiles: " .. table.concat(SP.Config:ProfileList(), ", "))
+            SP:Print(L["profiles: %s"]:format(table.concat(SP.Config:ProfileList(), ", ")))
         end
 
     elseif command == "peak" then
         SP:ResetPeakSpeed()
-        SP:Print("session speed record cleared.")
+        SP:Print(L["session speed record cleared."])
 
     elseif command == "gear" then
         SP.Gear:PrintReport()
@@ -121,8 +122,8 @@ SlashCmdList["STATPANEL"] = function(input)
 
     elseif command == "minimap" then
         SP.Broker:SetHidden(not SPAddonDB.global.minimap.hide)
-        SP:Print(SPAddonDB.global.minimap.hide and "minimap button hidden."
-            or "minimap button shown.")
+        SP:Print(SPAddonDB.global.minimap.hide and L["minimap button hidden."]
+            or L["minimap button shown."])
 
     else
         usage()

@@ -8,29 +8,35 @@
 -- an enchant or left a socket empty.
 
 local addonName, SP = ...
+local L = SP.L
+local G = SP.Global
 
 local Gear = {}
 SP.Gear = Gear
 
 -- Slot list in the order the character sheet shows them. Shirt (4) and tabard
 -- (19) are cosmetic and deliberately excluded.
+--
+-- Names come from Blizzard's own paper-doll globals so the report reads in the
+-- client's language for free; the English string after each is the fallback key
+-- if a global ever goes away.
 local SLOTS = {
-    { id = 1,  name = "Head" },
-    { id = 2,  name = "Neck" },
-    { id = 3,  name = "Shoulder" },
-    { id = 15, name = "Back" },
-    { id = 5,  name = "Chest" },
-    { id = 9,  name = "Wrist" },
-    { id = 10, name = "Hands" },
-    { id = 6,  name = "Waist" },
-    { id = 7,  name = "Legs" },
-    { id = 8,  name = "Feet" },
-    { id = 11, name = "Ring 1" },
-    { id = 12, name = "Ring 2" },
-    { id = 13, name = "Trinket 1" },
-    { id = 14, name = "Trinket 2" },
-    { id = 16, name = "Main Hand" },
-    { id = 17, name = "Off Hand" },
+    { id = 1,  name = G("HEADSLOT",          "Head") },
+    { id = 2,  name = G("NECKSLOT",          "Neck") },
+    { id = 3,  name = G("SHOULDERSLOT",      "Shoulder") },
+    { id = 15, name = G("BACKSLOT",          "Back") },
+    { id = 5,  name = G("CHESTSLOT",         "Chest") },
+    { id = 9,  name = G("WRISTSLOT",         "Wrist") },
+    { id = 10, name = G("HANDSSLOT",         "Hands") },
+    { id = 6,  name = G("WAISTSLOT",         "Waist") },
+    { id = 7,  name = G("LEGSSLOT",          "Legs") },
+    { id = 8,  name = G("FEETSLOT",          "Feet") },
+    { id = 11, name = G("FINGER0SLOT",       "Ring 1") },
+    { id = 12, name = G("FINGER1SLOT",       "Ring 2") },
+    { id = 13, name = G("TRINKET0SLOT",      "Trinket 1") },
+    { id = 14, name = G("TRINKET1SLOT",      "Trinket 2") },
+    { id = 16, name = G("MAINHANDSLOT",      "Main Hand") },
+    { id = 17, name = G("SECONDARYHANDSLOT", "Off Hand") },
 }
 
 -- Slots that normally take an enchant at max level. This shifts between
@@ -51,6 +57,24 @@ local ENCHANTABLE = {
 --------------------------------------------------------------------------------
 local GetItemLevel = (C_Item and C_Item.GetDetailedItemLevelInfo) or _G.GetDetailedItemLevelInfo
 local GetStats     = (C_Item and C_Item.GetItemStats) or _G.GetItemStats
+local GetGemQuality  = C_Item and C_Item.GetItemQualityByID
+local GetSetBonuses  = C_Item and C_Item.GetSetBonusesForSpecializationByItemID
+local GetTooltipData = C_TooltipInfo and C_TooltipInfo.GetInventoryItem
+local isSecret       = SP.IsSecret or function() return false end
+
+-- Slots that hold a class tier piece, and the count that makes a full set. The
+-- set count has no single API: we ask each of these slots whether its item
+-- grants a set bonus for the current spec and tally the answers.
+local TIER_SLOTS = { 1, 3, 5, 10, 7 }  -- Head, Shoulder, Chest, Hands, Legs
+local TIER_TOTAL = #TIER_SLOTS
+
+-- Upgrade tracks in ascending order, current-season naming. Only used to
+-- recognise the track word in the tooltip line; membership here is what tells a
+-- real "Champion 6/8" line apart from any other "word N/M" text.
+local UPGRADE_TRACKS = {
+    Explorer = true, Adventurer = true, Veteran = true,
+    Champion = true, Hero = true, Myth = true,
+}
 
 -- An item link carries its enchant and gems inline:
 --   item:itemID:enchantID:gem1:gem2:gem3:gem4:...
@@ -94,6 +118,76 @@ local function countEmptySockets(link)
     return empty
 end
 
+-- Counts gems below Epic quality in a parsed gem list. A rare gem in an epic
+-- item is a small, easily-forgotten upgrade -- the socketed equivalent of
+-- leaving on a lower-rank enchant.
+local function countLowGems(gems)
+    if not GetGemQuality or type(gems) ~= "table" then return 0 end
+    local low = 0
+    for _, gemID in ipairs(gems) do
+        if gemID and gemID > 0 then
+            local ok, quality = pcall(GetGemQuality, gemID)
+            -- Enum.ItemQuality: 4 = Epic. Below that is a downgrade worth noting.
+            if ok and type(quality) == "number" and quality < 4 then
+                low = low + 1
+            end
+        end
+    end
+    return low
+end
+
+-- Equipped tier pieces (0..TIER_TOTAL), or nil if the API or spec is
+-- unavailable. There is no "N of 5" API; we ask each tier slot's item whether it
+-- grants a set bonus for the current spec and count the ones that do -- which is
+-- also how Catalyst-made pieces get counted, since they carry the real bonus.
+local function countTierPieces()
+    if not GetSetBonuses then return nil end
+    local index = GetSpecialization and GetSpecialization()
+    local specID = index and GetSpecializationInfo(index)
+    if not specID then return nil end
+
+    local count = 0
+    for _, slotID in ipairs(TIER_SLOTS) do
+        local itemID = GetInventoryItemID("player", slotID)
+        if itemID then
+            local ok, spells = pcall(GetSetBonuses, specID, itemID)
+            if ok and type(spells) == "table" and #spells > 0 then
+                count = count + 1
+            end
+        end
+    end
+    return count
+end
+
+-- Reads an equipped item's upgrade track and progress by scanning its tooltip,
+-- because no API returns it for an arbitrary equipped item. Returns track name,
+-- current and max upgrade level (e.g. "Champion", 6, 8), or nil.
+--
+-- This is best-effort: the track word is localized, so on a non-English client
+-- it simply finds nothing and the audit omits upgrade info rather than guessing.
+-- Every step is guarded -- a tooltip read must never take the audit down.
+local function scanUpgrade(slotID)
+    if not GetTooltipData then return nil end
+
+    local ok, data = pcall(GetTooltipData, "player", slotID)
+    if not ok or type(data) ~= "table" or type(data.lines) ~= "table" then return nil end
+    if TooltipUtil and TooltipUtil.SurfaceArgs then pcall(TooltipUtil.SurfaceArgs, data) end
+
+    for _, line in ipairs(data.lines) do
+        if TooltipUtil and TooltipUtil.SurfaceArgs then pcall(TooltipUtil.SurfaceArgs, line) end
+        local text = line.leftText
+        -- Item tooltip lines are not secret values in 12.0, but guard anyway:
+        -- a secret string can't be pattern-matched.
+        if type(text) == "string" and not isSecret(text) then
+            local track, cur, max = text:match("(%a+)%s+(%d+)/(%d+)")
+            if track and UPGRADE_TRACKS[track] then
+                return track, tonumber(cur), tonumber(max)
+            end
+        end
+    end
+    return nil
+end
+
 --------------------------------------------------------------------------------
 -- AUDIT
 --------------------------------------------------------------------------------
@@ -105,6 +199,10 @@ function Gear:Audit()
         missingEnchants = 0,
         emptySockets = 0,
         emptySlots = 0,
+        lowGems = 0,
+        notMaxUpgrade = 0,
+        tierCount = countTierPieces(),  -- nil when unavailable
+        tierTotal = TIER_TOTAL,
         lowest = nil,
         highest = nil,
         average = 0,
@@ -124,9 +222,16 @@ function Gear:Audit()
             entry.enchanted = parsed and parsed.enchant ~= 0 or false
             entry.needsEnchant = ENCHANTABLE[slot.id] and not entry.enchanted or false
             entry.emptySockets = countEmptySockets(link)
+            entry.lowGems = parsed and countLowGems(parsed.gems) or 0
+
+            entry.upgradeTrack, entry.upgradeCur, entry.upgradeMax = scanUpgrade(slot.id)
+            if entry.upgradeCur and entry.upgradeMax and entry.upgradeCur < entry.upgradeMax then
+                result.notMaxUpgrade = result.notMaxUpgrade + 1
+            end
 
             if entry.needsEnchant then result.missingEnchants = result.missingEnchants + 1 end
             result.emptySockets = result.emptySockets + entry.emptySockets
+            result.lowGems = result.lowGems + entry.lowGems
 
             if entry.itemLevel > 0 then
                 total = total + entry.itemLevel
@@ -162,26 +267,39 @@ end
 function Gear:PrintReport()
     local audit = self:Audit()
 
-    SP:Print("gear audit")
+    SP:Print(L["gear audit"])
 
     for _, slot in ipairs(audit.slots) do
         if slot.empty then
             if slot.id ~= 17 then
-                print(string.format("  %-12s %s", slot.name, colorize("empty", 0.9, 0.3, 0.3)))
+                print(string.format("  %-12s %s", slot.name, colorize(L["empty"], 0.9, 0.3, 0.3)))
             end
         else
             local notes = {}
-            if slot.needsEnchant then notes[#notes + 1] = colorize("no enchant", 0.95, 0.6, 0.25) end
+            if slot.needsEnchant then notes[#notes + 1] = colorize(L["no enchant"], 0.95, 0.6, 0.25) end
             if slot.emptySockets > 0 then
-                notes[#notes + 1] = colorize(slot.emptySockets .. " empty socket", 0.95, 0.6, 0.25)
+                notes[#notes + 1] = colorize(L["%d empty socket(s)"]:format(slot.emptySockets), 0.95, 0.6, 0.25)
+            end
+            if slot.lowGems > 0 then
+                notes[#notes + 1] = colorize(L["%d rare gem(s)"]:format(slot.lowGems), 0.95, 0.6, 0.25)
+            end
+
+            -- The upgrade track sits after the item level, dimmed when maxed and
+            -- highlighted when there is headroom left.
+            local track = ""
+            if slot.upgradeTrack and slot.upgradeCur and slot.upgradeMax then
+                local maxed = slot.upgradeCur >= slot.upgradeMax
+                track = "  " .. colorize(
+                    string.format("%s %d/%d", slot.upgradeTrack, slot.upgradeCur, slot.upgradeMax),
+                    maxed and 0.5 or 0.55, maxed and 0.5 or 0.7, maxed and 0.55 or 0.95)
             end
 
             local marker = ""
             if audit.lowest and slot.id == audit.lowest.id then
-                marker = colorize("  <- lowest", 0.6, 0.6, 0.65)
+                marker = colorize("  <- " .. L["lowest"], 0.6, 0.6, 0.65)
             end
 
-            print(string.format("  %-12s %d%s%s", slot.name, slot.itemLevel,
+            print(string.format("  %-12s %d%s%s%s", slot.name, slot.itemLevel, track,
                 #notes > 0 and ("  " .. table.concat(notes, ", ")) or "", marker))
         end
     end
@@ -189,11 +307,22 @@ function Gear:PrintReport()
     local overall, equipped = GetAverageItemLevel()
     equipped = SP.PlainNumber(equipped)
     if equipped then
-        print(string.format("  %-12s %.2f", "Equipped", equipped))
+        print(string.format("  %-12s %.2f", L["Equipped"], equipped))
     end
 
-    if audit.missingEnchants == 0 and audit.emptySockets == 0 and audit.emptySlots == 0 then
-        print("  " .. colorize("Everything is enchanted and socketed.", 0.35, 0.85, 0.4))
+    if audit.tierCount then
+        local full = audit.tierCount >= audit.tierTotal
+        print("  " .. colorize(string.format(L["Tier set    %d/%d"], audit.tierCount, audit.tierTotal),
+            full and 0.35 or 0.6, full and 0.85 or 0.6, full and 0.4 or 0.65))
+    end
+    if audit.notMaxUpgrade > 0 then
+        print("  " .. colorize(L["%d item(s) not fully upgraded"]:format(audit.notMaxUpgrade),
+            0.6, 0.6, 0.65))
+    end
+
+    if audit.missingEnchants == 0 and audit.emptySockets == 0 and audit.emptySlots == 0
+        and audit.lowGems == 0 then
+        print("  " .. colorize(L["Everything is enchanted and socketed."], 0.35, 0.85, 0.4))
     end
 end
 
@@ -206,15 +335,18 @@ function Gear:WarningText()
     local issues = {}
 
     if audit.missingEnchants > 0 then
-        issues[#issues + 1] = audit.missingEnchants .. " enchant" .. (audit.missingEnchants == 1 and "" or "s")
+        issues[#issues + 1] = L["%d enchant(s)"]:format(audit.missingEnchants)
     end
     if audit.emptySockets > 0 then
-        issues[#issues + 1] = audit.emptySockets .. " socket" .. (audit.emptySockets == 1 and "" or "s")
+        issues[#issues + 1] = L["%d socket(s)"]:format(audit.emptySockets)
+    end
+    if audit.lowGems > 0 then
+        issues[#issues + 1] = L["%d rare gem(s)"]:format(audit.lowGems)
     end
     if audit.emptySlots > 0 then
-        issues[#issues + 1] = audit.emptySlots .. " empty slot" .. (audit.emptySlots == 1 and "" or "s")
+        issues[#issues + 1] = L["%d empty slot(s)"]:format(audit.emptySlots)
     end
 
     if #issues == 0 then return nil end
-    return "Missing: " .. table.concat(issues, ", ")
+    return L["Missing: %s"]:format(table.concat(issues, ", "))
 end

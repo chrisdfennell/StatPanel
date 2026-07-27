@@ -5,6 +5,78 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.3.0] - 2026-07-27
+
+### Added
+
+- **Localization support.** The addon had none -- every user-facing string was
+  an inline English literal, so it could never be translated. There is now a
+  tiny locale table (`SP.L`, no embedded library): the English string is the
+  key, and a translation file for the client's language overlays it, with any
+  untranslated string falling back to English. Every user-facing string -- the
+  options window, the panel tooltip and stat names, the slash commands, the
+  right-click menu, the gear report and the chat announce -- is routed through
+  it. Shipping English-complete and translation-ready; `Locales/README.md`
+  documents how to add a language. Identifiers (config keys, value-format
+  tokens, preset names) are deliberately left untranslated.
+
+- **Stat and gear-slot names come from the client.** `SP.Global` prefers
+  Blizzard's own `GlobalStrings` (`STAT_HASTE`, `HEADSLOT`, ...) and falls back
+  to `SP.L` only if a global is missing, so those names are already correct in
+  all twelve locales with no translator effort. The deliberately abbreviated
+  forms used by the compact priority chain (`Crit`, `Mast`, `Vers`) stay in
+  `SP.L` — the Blizzard names are the full ones and wouldn't fit.
+
+- **German translation** (`Locales/deDE.lua`), complete against the current
+  string set.
+
+- **Localized addon-list metadata.** `## Notes-<locale>` headers for the ten
+  translated client locales, read by the in-game addon list and the CurseForge
+  and Wago listings.
+
+- **`tools/locale-lint.ps1`.** `SP.L` never fails at runtime, which means the
+  two mistakes translators actually make are silent: a mistyped key renders the
+  English forever, and a translation that drops or reorders a format specifier
+  only errors at the far-away `:format()` call. The linter reports both, plus
+  duplicate keys, empty translations, a locale file whose `SP.Locale` argument
+  doesn't match its filename, and one missing from the TOC. `-Export <locale>`
+  emits a ready-to-fill stub. CI runs it on every pull request.
+
+### Fixed
+
+- Strings the first localization pass missed: the font-outline dropdown names,
+  the live-preview window, and the gear list on the Gear options page, which
+  duplicated the chat report's wording as English literals.
+
+- Sentences assembled with `..` now use format strings, so translations can
+  reorder them: "Current specialization: %s", "Background: %s", "Priority %d"
+  and the announce channel fallback.
+
+- The CI TOC check anchored its pattern on `[A-Za-z0-9_/-]+`, which stops at the
+  backslash in a Windows-style TOC path. Every subdirectory entry was skipped
+  silently, so a broken `Locales\` path would have passed. Separators are now
+  normalized before matching, and the check walks subdirectories too.
+
+## [2.2.0] - 2026-07-23
+
+### Added
+
+- **Deeper gear audit.** `/sp gear`, the Gear options page and the chat announce
+  now report more than enchants and sockets:
+  - **Tier set count** — how many class set pieces you have equipped, e.g.
+    `4/5`. Counted through the current set-bonus API, so Catalyst-made pieces
+    count the same as drops.
+  - **Upgrade track and progress** per slot — `Champion 6/8`, dimmed once a slot
+    is maxed — plus a tally of items not yet fully upgraded. There is no API for
+    an equipped item's track, so this is read from the item tooltip: best-effort
+    on English clients, and quietly omitted rather than guessed elsewhere.
+  - **Below-Epic gems** — a rare gem sitting in an epic item is flagged like a
+    missing enchant, since it's an easily-forgotten upgrade.
+
+  Enchant *rank* and embellishment detection were left out on purpose: both need
+  a per-season maintained table or fragile tooltip matching, and would quietly
+  rot between patches rather than fail loudly.
+
 ## [2.1.1] - 2026-07-23
 
 ### Fixed

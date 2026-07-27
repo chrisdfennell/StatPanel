@@ -2,7 +2,7 @@
 ## Title: StatPanel
 ## Notes: Fully customizable secondary stat, speed and FPS display
 ## Author: Fennell
-## Version: 2.1.1
+## Version: 2.3.0
 ## SavedVariables: SPAddonDB
 ## OptionalDeps: LibSharedMedia-3.0, LibDataBroker-1.1, LibDBIcon-1.0
 ## IconTexture: Interface\Icons\INV_Misc_Gear_01
@@ -12,6 +12,22 @@
 ## X-Curse-Project-ID: 1122269
 ## X-Wago-ID: 96d2OlGO
 
+# The addon list and the CurseForge / Wago listings read these per-locale
+# headers, falling back to the plain ## Notes above when one is absent. The
+# title is a proper noun and is deliberately left untranslated.
+## Notes-deDE: Vollständig anpassbare Anzeige für Sekundärwerte, Tempo und FPS
+## Notes-esES: Panel totalmente personalizable de estadísticas secundarias, velocidad y FPS
+## Notes-esMX: Panel totalmente personalizable de estadísticas secundarias, velocidad y FPS
+## Notes-frFR: Affichage entièrement personnalisable des stats secondaires, de la vitesse et des FPS
+## Notes-itIT: Pannello completamente personalizzabile per statistiche secondarie, velocità e FPS
+## Notes-koKR: 이차 능력치, 이동 속도, FPS를 표시하는 완전 맞춤형 패널
+## Notes-ptBR: Painel totalmente personalizável de atributos secundários, velocidade e FPS
+## Notes-ruRU: Полностью настраиваемая панель вторичных характеристик, скорости и FPS
+## Notes-zhCN: 完全可自定义的副属性、速度和 FPS 显示面板
+## Notes-zhTW: 完全可自訂的副屬性、速度與 FPS 顯示面板
+
+Locale.lua
+Locales\deDE.lua
 Media.lua
 Config.lua
 Presets.lua
