@@ -10,6 +10,7 @@
 -- re-reads the whole profile on every refresh.
 
 local addonName, SP = ...
+local L = SP.L
 
 local Config = {}
 SP.Config = Config
@@ -478,8 +479,8 @@ end
 -- Creates a profile, optionally seeded from an existing one (a copy).
 function Config:NewProfile(name, copyFrom)
     name = (name or ""):trim()
-    if name == "" then return false, "Profile name cannot be empty." end
-    if SPAddonDB.profiles[name] then return false, "A profile named '" .. name .. "' already exists." end
+    if name == "" then return false, L["Profile name cannot be empty."] end
+    if SPAddonDB.profiles[name] then return false, L["A profile named '%s' already exists."]:format(name) end
 
     local source = copyFrom and SPAddonDB.profiles[copyFrom] or DEFAULTS
     SPAddonDB.profiles[name] = deepCopy(source)
@@ -487,8 +488,8 @@ function Config:NewProfile(name, copyFrom)
 end
 
 function Config:DeleteProfile(name)
-    if name == "Default" then return false, "The Default profile cannot be deleted." end
-    if not SPAddonDB.profiles[name] then return false, "No such profile." end
+    if name == "Default" then return false, L["The Default profile cannot be deleted."] end
+    if not SPAddonDB.profiles[name] then return false, L["No such profile."] end
 
     SPAddonDB.profiles[name] = nil
 
@@ -657,7 +658,7 @@ end
 
 -- Returns the imported profile name on success, or nil plus an error message.
 function Config:Import(text, targetName)
-    if type(text) ~= "string" then return nil, "Nothing to import." end
+    if type(text) ~= "string" then return nil, L["Nothing to import."] end
 
     text = text:gsub("%s+", "")
 
@@ -666,22 +667,22 @@ function Config:Import(text, targetName)
     -- but it can't stop a table constructor like {x=("a"):rep(2^30)} from
     -- allocating gigabytes during pcall, and string methods resolve even in an
     -- empty environment. Reject oversize strings before they reach loadstring.
-    if #text > 262144 then return nil, "That import string is too large to be a profile." end
+    if #text > 262144 then return nil, L["That import string is too large to be a profile."] end
 
     local payload = text:match("^SP1!(.+)$")
-    if not payload then return nil, "That doesn't look like a StatPanel export string." end
+    if not payload then return nil, L["That doesn't look like a StatPanel export string."] end
 
     local decoded = base64Decode(payload)
-    if not decoded then return nil, "The import string is corrupt." end
+    if not decoded then return nil, L["The import string is corrupt."] end
 
     -- The chunk is a bare table constructor; load it in an empty environment so
     -- a malformed or hostile string can't reach into the game's globals.
     local chunk, err = loadstring("return " .. decoded)
-    if not chunk then return nil, "Could not read the import string: " .. (err or "?") end
+    if not chunk then return nil, L["Could not read the import string: %s"]:format(err or "?") end
     setfenv(chunk, {})
 
     local ok, result = pcall(chunk)
-    if not ok or type(result) ~= "table" then return nil, "The import string did not contain a profile." end
+    if not ok or type(result) ~= "table" then return nil, L["The import string did not contain a profile."] end
 
     targetName = (targetName or ""):trim()
     if targetName == "" then targetName = self:CurrentProfile() end

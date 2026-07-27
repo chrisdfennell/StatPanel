@@ -12,6 +12,7 @@
 -- a profile) so the button doesn't jump around when you switch looks.
 
 local addonName, SP = ...
+local L = SP.L
 
 local Broker = {}
 SP.Broker = Broker
@@ -43,23 +44,23 @@ local function onTooltip(tooltip)
     local isSecret = SP.IsSecret
     local _, equipped = GetAverageItemLevel()
     if not isSecret(equipped) then
-        tooltip:AddDoubleLine("Item level", string.format("%.1f", equipped or 0), 0.8, 0.8, 0.8, 1, 1, 1)
+        tooltip:AddDoubleLine(L["Item level"], string.format("%.1f", equipped or 0), 0.8, 0.8, 0.8, 1, 1, 1)
     end
 
     local fps = GetFramerate() or 0
     if not isSecret(fps) then
-        tooltip:AddDoubleLine("FPS", string.format("%.0f", fps), 0.8, 0.8, 0.8, 1, 1, 1)
+        tooltip:AddDoubleLine(L["FPS"], string.format("%.0f", fps), 0.8, 0.8, 0.8, 1, 1, 1)
     end
 
     local _, specName = SP:GetCurrentPriority()
     if specName then
-        tooltip:AddDoubleLine("Spec", specName, 0.8, 0.8, 0.8, 1, 1, 1)
+        tooltip:AddDoubleLine(L["Spec"], specName, 0.8, 0.8, 0.8, 1, 1, 1)
     end
-    tooltip:AddDoubleLine("Profile", SP.Config:CurrentProfile(), 0.8, 0.8, 0.8, 1, 1, 1)
+    tooltip:AddDoubleLine(L["Profile"], SP.Config:CurrentProfile(), 0.8, 0.8, 0.8, 1, 1, 1)
 
     tooltip:AddLine(" ")
-    tooltip:AddLine("|cffffff00Left-click|r  open options", 0.6, 0.6, 0.6)
-    tooltip:AddLine("|cffffff00Right-click|r  quick menu", 0.6, 0.6, 0.6)
+    tooltip:AddLine(L["|cffffff00Left-click|r  open options"], 0.6, 0.6, 0.6)
+    tooltip:AddLine(L["|cffffff00Right-click|r  quick menu"], 0.6, 0.6, 0.6)
 end
 
 --------------------------------------------------------------------------------
@@ -205,9 +206,9 @@ function Broker:StartTicker()
         -- secret; fall back to the parts we can read.
         if SP.IsSecret(equipped) then
             dataObject.text = SP.IsSecret(fps) and "StatPanel"
-                or string.format("%.0f fps", fps)
+                or L["%.0f fps"]:format(fps)
         else
-            dataObject.text = string.format("%.0f fps  |  iLvl %.0f", fps, equipped or 0)
+            dataObject.text = L["%.0f fps  |  iLvl %.0f"]:format(fps, equipped or 0)
         end
     end)
 end

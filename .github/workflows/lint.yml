@@ -32,11 +32,19 @@ jobs:
 
       # A .lua file that isn't listed in the TOC never loads, which is easy to
       # miss in review and impossible to spot in-game without hunting.
+      #
+      # The TOC uses Windows separators (Locales\deDE.lua), so entries are
+      # normalized to forward slashes before comparing -- an earlier version of
+      # this check anchored on [A-Za-z0-9_/-]+ and silently skipped every
+      # subdirectory entry, which is exactly the case worth catching.
       - name: Every Lua file is in the TOC, and every TOC entry exists
         shell: bash
         run: |
           status=0
-          listed=$(grep -oiE '^[A-Za-z0-9_/-]+\.lua' StatPanel.toc | tr -d '\r')
+          # Normalize separators before matching, not inside the pattern: '\134'
+          # is octal for backslash and avoids an escaping level that would
+          # otherwise differ between a shell and a YAML block scalar.
+          listed=$(tr '\134' '/' < StatPanel.toc | tr -d '\r' | grep -oiE '^[A-Za-z0-9_./-]+\.lua')
 
           for file in $listed; do
             if [ ! -f "$file" ]; then
@@ -45,7 +53,7 @@ jobs:
             fi
           done
 
-          for file in *.lua; do
+          for file in $(find . -name '*.lua' -not -path './.git/*' | sed 's|^\./||' | sort); do
             if ! echo "$listed" | grep -qxF "$file"; then
               echo "::error file=$file::'$file' is not listed in StatPanel.toc and will never load"
               status=1
@@ -54,3 +62,16 @@ jobs:
 
           [ $status -eq 0 ] && echo "All Lua files are accounted for."
           exit $status
+
+  locales:
+    name: Locales
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # SP.L falls back silently, so a mistyped key or a dropped format
+      # specifier is invisible at runtime until the moment it breaks. pwsh ships
+      # on the ubuntu-latest image.
+      - name: Lint locale files
+        shell: pwsh
+        run: pwsh -File tools/locale-lint.ps1
