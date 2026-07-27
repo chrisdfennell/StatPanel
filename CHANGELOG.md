@@ -5,7 +5,7 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2.3.0] - 2026-07-23
+## [2.3.0] - 2026-07-27
 
 ### Added
 
