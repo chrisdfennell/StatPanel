@@ -176,7 +176,9 @@ function Announce:Send(channel, target)
 
     local ok, err = channelAvailable(channel)
     if not ok then
-        SP:Print(err .. " " .. L["Showing it here instead:"])
+        -- `err` is already a localized sentence; the format string lets a
+        -- translator choose how the two join rather than forcing a space.
+        SP:Print(L["%s Showing it here instead:"]:format(err))
         SP:Print(message)
         return false
     end

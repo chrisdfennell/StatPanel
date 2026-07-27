@@ -206,9 +206,9 @@ function Broker:StartTicker()
         -- secret; fall back to the parts we can read.
         if SP.IsSecret(equipped) then
             dataObject.text = SP.IsSecret(fps) and "StatPanel"
-                or string.format("%.0f fps", fps)
+                or L["%.0f fps"]:format(fps)
         else
-            dataObject.text = string.format("%.0f fps  |  iLvl %.0f", fps, equipped or 0)
+            dataObject.text = L["%.0f fps  |  iLvl %.0f"]:format(fps, equipped or 0)
         end
     end)
 end

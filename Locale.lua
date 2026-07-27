@@ -29,3 +29,19 @@ function SP.Locale(locale)
     end
     return {}
 end
+
+-- The client already ships localized text for much of what the panel displays:
+-- stat names and gear slots are in Blizzard's GlobalStrings, correct in all
+-- twelve locales. Preferring those to our own table means a translator never
+-- has to retype "Haste" in twelve languages, and the SP.L entry stays behind as
+-- the fallback for a client (or a future patch) where the global is missing.
+--
+-- Callers pass the English text as the fallback key, so the string is still
+-- greppable in the source and a translator can still override it.
+function SP.Global(name, fallback)
+    local value = _G[name]
+    if type(value) == "string" and value ~= "" then
+        return value
+    end
+    return SP.L[fallback]
+end

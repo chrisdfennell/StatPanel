@@ -824,11 +824,11 @@ local function buildPriority(content, stack)
     stack:Add(UI:Header(content, L["Priority for your current spec"]))
     stack:Add(UI:Note(content, L["The built-in order is a general-purpose baseline. Sim your own character for the authoritative answer, then set it here."]))
 
-    local specLabel = UI:Note(content, L[""])
+    local specLabel = UI:Note(content, "")
     stack:Add(specLabel)
     specLabel.Refresh = function(self)
         local _, specName = SP:GetCurrentPriority()
-        self.text:SetText("Current specialization: " .. (specName or "unknown"))
+        self.text:SetText(L["Current specialization: %s"]:format(specName or L["unknown"]))
     end
     UI.widgets[#UI.widgets + 1] = specLabel
 
@@ -840,7 +840,7 @@ local function buildPriority(content, stack)
 
     for slot = 1, 4 do
         stack:Add(UI:Dropdown(content, {
-            label = L["Priority "] .. slot,
+            label = L["Priority %d"]:format(slot),
             values = function()
                 local out = {}
                 for _, statName in ipairs(SECONDARY) do
@@ -1132,9 +1132,9 @@ local function buildGear(content, stack)
 
         local warning = SP.Gear:WarningText()
         local tier = audit.tierCount
-            and string.format("  Tier set %d/%d.", audit.tierCount, audit.tierTotal) or ""
-        summary.text:SetText(string.format("Average equipped item level %.2f.%s  %s",
-            audit.average, tier, warning or "Nothing missing."))
+            and L["  Tier set %d/%d."]:format(audit.tierCount, audit.tierTotal) or ""
+        summary.text:SetText(L["Average equipped item level %.2f.%s  %s"]
+            :format(audit.average, tier, warning or L["Nothing missing."]))
 
         for _, row in ipairs(list.rows) do row:Hide() end
 
@@ -1170,17 +1170,19 @@ local function buildGear(content, stack)
                     row.info:SetText("-")
                     row.info:SetTextColor(0.5, 0.5, 0.55)
                 else
-                    row.info:SetText("empty")
+                    row.info:SetText(L["empty"])
                     row.info:SetTextColor(0.9, 0.35, 0.35)
                 end
             else
+                -- Same wording and the same keys as the /sp gear chat report in
+                -- Gear.lua, so a translator writes each of these exactly once.
                 local notes = {}
-                if slot.needsEnchant then notes[#notes + 1] = "no enchant" end
+                if slot.needsEnchant then notes[#notes + 1] = L["no enchant"] end
                 if slot.emptySockets > 0 then
-                    notes[#notes + 1] = slot.emptySockets .. " empty socket"
+                    notes[#notes + 1] = L["%d empty socket(s)"]:format(slot.emptySockets)
                 end
                 if slot.lowGems > 0 then
-                    notes[#notes + 1] = slot.lowGems .. " rare gem"
+                    notes[#notes + 1] = L["%d rare gem(s)"]:format(slot.lowGems)
                 end
 
                 local track = ""
@@ -1192,7 +1194,7 @@ local function buildGear(content, stack)
                 local isLowest = audit.lowest and slot.id == audit.lowest.id
                 row.info:SetText(string.format("%d%s%s%s", slot.itemLevel, track,
                     #notes > 0 and ("   " .. table.concat(notes, ", ")) or "",
-                    isLowest and "   (lowest)" or ""))
+                    isLowest and ("   (" .. L["lowest"] .. ")") or ""))
 
                 if #notes > 0 then
                     row.info:SetTextColor(0.95, 0.6, 0.25)
@@ -1267,11 +1269,11 @@ local function buildAutomation(content, stack)
     stack:Add(UI:Header(content, L["By specialization"]))
     stack:Add(UI:Note(content, L["Only your current specialization is listed. Switch spec and come back to set a rule for another one."]))
 
-    local specLabel = UI:Note(content, L[""])
+    local specLabel = UI:Note(content, "")
     stack:Add(specLabel)
     specLabel.Refresh = function(self)
         local _, specName = SP:GetCurrentPriority()
-        self.text:SetText("Current specialization: " .. (specName or "unknown"))
+        self.text:SetText(L["Current specialization: %s"]:format(specName or L["unknown"]))
     end
     UI.widgets[#UI.widgets + 1] = specLabel
 
@@ -1394,7 +1396,7 @@ local function applyPreviewBackdrop()
 
     local mode = PREVIEW_BACKDROPS[index]
     previewWindow:SetBackdropColor(unpack(mode.color))
-    previewWindow.bgButton:SetText("Background: " .. mode.name)
+    previewWindow.bgButton:SetText(L["Background: %s"]:format(mode.name))
 end
 
 local function ensurePreviewWindow()
@@ -1426,14 +1428,14 @@ local function ensurePreviewWindow()
     heading:SetFont([[Fonts\FRIZQT__.TTF]], 13, "")
     heading:SetTextColor(1, 0.82, 0.32)
     heading:SetPoint("TOP", previewWindow, "TOP", 0, -9)
-    heading:SetText("Live Preview")
+    heading:SetText(L["Live Preview"])
 
     local note = previewWindow:CreateFontString(nil, "OVERLAY")
     note:SetFont([[Fonts\FRIZQT__.TTF]], 10, "")
     note:SetTextColor(0.60, 0.60, 0.65)
     note:SetPoint("BOTTOM", previewWindow, "BOTTOM", 0, 8)
     note:SetWidth(330)
-    note:SetText("The real panel, docked here. Drag this window to move it; the panel returns home when you close the options.")
+    note:SetText(L["The real panel, docked here. Drag this window to move it; the panel returns home when you close the options."])
 
     previewWindow.bgButton = CreateFrame("Button", nil, previewWindow, "UIPanelButtonTemplate")
     previewWindow.bgButton:SetSize(150, 20)
@@ -1533,7 +1535,7 @@ function SP:CreateOptionsPanel()
     local subtitle = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
     subtitle:SetJustifyH("LEFT")
-    subtitle:SetText("Type /sp for slash commands. Drag the panel itself to move it.")
+    subtitle:SetText(L["Type /sp for slash commands. Drag the panel itself to move it."])
 
     -- Sidebar
     local sidebar = CreateFrame("Frame", nil, optionsFrame)

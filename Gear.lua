@@ -9,29 +9,34 @@
 
 local addonName, SP = ...
 local L = SP.L
+local G = SP.Global
 
 local Gear = {}
 SP.Gear = Gear
 
 -- Slot list in the order the character sheet shows them. Shirt (4) and tabard
 -- (19) are cosmetic and deliberately excluded.
+--
+-- Names come from Blizzard's own paper-doll globals so the report reads in the
+-- client's language for free; the English string after each is the fallback key
+-- if a global ever goes away.
 local SLOTS = {
-    { id = 1,  name = "Head" },
-    { id = 2,  name = "Neck" },
-    { id = 3,  name = "Shoulder" },
-    { id = 15, name = "Back" },
-    { id = 5,  name = "Chest" },
-    { id = 9,  name = "Wrist" },
-    { id = 10, name = "Hands" },
-    { id = 6,  name = "Waist" },
-    { id = 7,  name = "Legs" },
-    { id = 8,  name = "Feet" },
-    { id = 11, name = "Ring 1" },
-    { id = 12, name = "Ring 2" },
-    { id = 13, name = "Trinket 1" },
-    { id = 14, name = "Trinket 2" },
-    { id = 16, name = "Main Hand" },
-    { id = 17, name = "Off Hand" },
+    { id = 1,  name = G("HEADSLOT",          "Head") },
+    { id = 2,  name = G("NECKSLOT",          "Neck") },
+    { id = 3,  name = G("SHOULDERSLOT",      "Shoulder") },
+    { id = 15, name = G("BACKSLOT",          "Back") },
+    { id = 5,  name = G("CHESTSLOT",         "Chest") },
+    { id = 9,  name = G("WRISTSLOT",         "Wrist") },
+    { id = 10, name = G("HANDSSLOT",         "Hands") },
+    { id = 6,  name = G("WAISTSLOT",         "Waist") },
+    { id = 7,  name = G("LEGSSLOT",          "Legs") },
+    { id = 8,  name = G("FEETSLOT",          "Feet") },
+    { id = 11, name = G("FINGER0SLOT",       "Ring 1") },
+    { id = 12, name = G("FINGER1SLOT",       "Ring 2") },
+    { id = 13, name = G("TRINKET0SLOT",      "Trinket 1") },
+    { id = 14, name = G("TRINKET1SLOT",      "Trinket 2") },
+    { id = 16, name = G("MAINHANDSLOT",      "Main Hand") },
+    { id = 17, name = G("SECONDARYHANDSLOT", "Off Hand") },
 }
 
 -- Slots that normally take an enchant at max level. This shifts between

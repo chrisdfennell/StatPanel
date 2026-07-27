@@ -20,6 +20,43 @@ of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   documents how to add a language. Identifiers (config keys, value-format
   tokens, preset names) are deliberately left untranslated.
 
+- **Stat and gear-slot names come from the client.** `SP.Global` prefers
+  Blizzard's own `GlobalStrings` (`STAT_HASTE`, `HEADSLOT`, ...) and falls back
+  to `SP.L` only if a global is missing, so those names are already correct in
+  all twelve locales with no translator effort. The deliberately abbreviated
+  forms used by the compact priority chain (`Crit`, `Mast`, `Vers`) stay in
+  `SP.L` — the Blizzard names are the full ones and wouldn't fit.
+
+- **German translation** (`Locales/deDE.lua`), complete against the current
+  string set.
+
+- **Localized addon-list metadata.** `## Notes-<locale>` headers for the ten
+  translated client locales, read by the in-game addon list and the CurseForge
+  and Wago listings.
+
+- **`tools/locale-lint.ps1`.** `SP.L` never fails at runtime, which means the
+  two mistakes translators actually make are silent: a mistyped key renders the
+  English forever, and a translation that drops or reorders a format specifier
+  only errors at the far-away `:format()` call. The linter reports both, plus
+  duplicate keys, empty translations, a locale file whose `SP.Locale` argument
+  doesn't match its filename, and one missing from the TOC. `-Export <locale>`
+  emits a ready-to-fill stub. CI runs it on every pull request.
+
+### Fixed
+
+- Strings the first localization pass missed: the font-outline dropdown names,
+  the live-preview window, and the gear list on the Gear options page, which
+  duplicated the chat report's wording as English literals.
+
+- Sentences assembled with `..` now use format strings, so translations can
+  reorder them: "Current specialization: %s", "Background: %s", "Priority %d"
+  and the announce channel fallback.
+
+- The CI TOC check anchored its pattern on `[A-Za-z0-9_/-]+`, which stops at the
+  backslash in a Windows-style TOC path. Every subdirectory entry was skipped
+  silently, so a broken `Locales\` path would have passed. Separators are now
+  normalized before matching, and the check walks subdirectories too.
+
 ## [2.2.0] - 2026-07-23
 
 ### Added

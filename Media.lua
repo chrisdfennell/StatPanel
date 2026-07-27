@@ -11,6 +11,7 @@
 -- still ship a curated list of Blizzard-shipped assets.
 
 local addonName, SP = ...
+local L = SP.L
 
 local Media = {}
 SP.Media = Media
@@ -76,12 +77,18 @@ Media.borders = {
 }
 
 -- Font outline flag combinations, in dropdown order.
+--
+-- Only `name` is translated. `value` is what SetFont expects and what lands in
+-- the saved profile, so it stays English on every client -- otherwise a profile
+-- written on a German client would be unreadable on an English one. The same
+-- rule governs the texture and border tables above: their keys are lookup keys
+-- and LibSharedMedia registration names, not display text.
 Media.fontFlags = {
-    { value = "",                    name = "None" },
-    { value = "OUTLINE",             name = "Outline" },
-    { value = "THICKOUTLINE",        name = "Thick Outline" },
-    { value = "MONOCHROME",          name = "Monochrome" },
-    { value = "MONOCHROME,OUTLINE",  name = "Monochrome Outline" },
+    { value = "",                    name = L["None"] },
+    { value = "OUTLINE",             name = L["Outline"] },
+    { value = "THICKOUTLINE",        name = L["Thick Outline"] },
+    { value = "MONOCHROME",          name = L["Monochrome"] },
+    { value = "MONOCHROME,OUTLINE",  name = L["Monochrome Outline"] },
 }
 
 -- Frame strata values, ordered from back to front.
