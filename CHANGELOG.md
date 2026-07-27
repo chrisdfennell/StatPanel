@@ -5,6 +5,31 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.4.0] - 2026-07-27
+
+### Added
+
+- **Five more translations**, each complete against the current 452-key string
+  set: French (`frFR`), Spanish (`esES`), Latin American Spanish (`esMX`),
+  Brazilian Portuguese (`ptBR`) and Italian (`itIT`). Every one carries a
+  `## Notes-<locale>` line for the in-game addon list and the store pages.
+
+  `esMX.lua` is derived from `esES.lua` rather than hand-copied. The two
+  Blizzard localizations differ in scattered vocabulary, not in structure, and
+  deriving it means the key set cannot silently drift out of step.
+
+  **None of these have been reviewed by a native speaker.** Terminology follows
+  each client's own wording where it exists, and every file says so in its
+  header and points at the issue tracker. Corrections are welcome.
+
+### Not included
+
+- Russian, Korean and both Chinese locales are deliberately absent. The addon
+  hardcodes `Fonts\FRIZQT__.TTF` in ten places, and Blizzard ships
+  locale-specific fonts for those clients, so a translation would likely render
+  as empty boxes rather than text. That needs resolving first -- a translation
+  nobody can read is worse than English.
+
 ## [2.3.0] - 2026-07-27
 
 ### Added

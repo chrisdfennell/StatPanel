@@ -5,7 +5,19 @@ translated without touching the code. The **English string is the key** — ther
 is no separate English value file to maintain, and any string a translation
 doesn't cover falls back to English automatically.
 
-`Locales/deDE.lua` is a complete worked example; copy its shape.
+Six languages ship today, all complete against the current key set: German
+(`deDE`), Spanish (`esES`), Latin American Spanish (`esMX`), French (`frFR`),
+Italian (`itIT`) and Brazilian Portuguese (`ptBR`). Copy any of their shapes.
+
+**None of them has been reviewed by a native speaker.** Terminology follows each
+client's own wording where it exists, but if you play in one of these languages
+and something reads badly, a corrected line in an issue or PR is genuinely the
+most useful contribution you can make.
+
+Russian, Korean and both Chinese locales are missing on purpose: the addon
+hardcodes `Fonts\FRIZQT__.TTF`, and those clients use locale-specific font
+files, so a translation would likely render as empty boxes. That has to be
+fixed before those languages are worth adding.
 
 ## Adding a language
 
