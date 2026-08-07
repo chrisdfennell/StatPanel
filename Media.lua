@@ -19,6 +19,77 @@ SP.Media = Media
 local LSM = _G.LibStub and _G.LibStub("LibSharedMedia-3.0", true)
 Media.LSM = LSM
 
+--------------------------------------------------------------------------------
+-- THE CLIENT'S OWN FONT
+--------------------------------------------------------------------------------
+-- FRIZQT__.TTF covers Latin script and nothing else. Naming it directly -- which
+-- this addon used to do in eleven places -- renders Cyrillic, Korean and both
+-- Chinese scripts as empty boxes, which is why those four translations could not
+-- ship. Blizzard already solved this: STANDARD_TEXT_FONT is set per client
+-- locale and points at a file that can draw that locale's text.
+--
+-- Every piece of chrome the addon draws for itself (the options window, the
+-- widgets, the preview) asks for this rather than naming a file. The panel
+-- proper is different -- there the font is a user-facing setting, so it goes
+-- through Media:Fetch("font", ...) like any other choice.
+local LATIN_FONT = [[Fonts\FRIZQT__.TTF]]
+
+local resolvedUIFont
+
+-- Cached because it cannot change without a client restart, and this is called
+-- once per font string in a 1600-line options window.
+function Media:UIFont()
+    if resolvedUIFont then return resolvedUIFont end
+
+    local candidate = _G.STANDARD_TEXT_FONT
+
+    if type(candidate) ~= "string" or candidate == "" then
+        -- Whatever GameFontNormal is actually using is the same answer by a
+        -- different route, and survives STANDARD_TEXT_FONT being retired.
+        local font = _G.GameFontNormal
+        if font and font.GetFont then
+            local ok, path = pcall(font.GetFont, font)
+            if ok and type(path) == "string" and path ~= "" then
+                candidate = path
+            end
+        end
+    end
+
+    resolvedUIFont = (type(candidate) == "string" and candidate ~= "")
+        and candidate or LATIN_FONT
+    return resolvedUIFont
+end
+
+-- Shorthand, since this is called from three other files.
+SP.UIFont = function() return Media:UIFont() end
+
+-- The four clients whose text FRIZQT__.TTF and friends cannot draw. Korean and
+-- both Chinese clients ship those filenames but with Latin glyphs only, so the
+-- font loads, reports success, and renders boxes -- there is no error to catch.
+-- Russian is included for safety: its Friz Quadrata does carry Cyrillic, so the
+-- substitution is visually identical there and costs nothing.
+local NON_LATIN_LOCALE = {
+    koKR = true, zhCN = true, zhTW = true, ruRU = true,
+}
+
+-- Built-in faces that are Latin-only. Shared-media fonts are NOT listed: those
+-- come from another addon that knows its own audience, and second-guessing a
+-- font the user deliberately installed would be worse than the problem.
+local LATIN_ONLY_FACE = {
+    ["Friz Quadrata"] = true,
+    ["Arial Narrow"]  = true,
+    ["Skurri"]        = true,
+    ["Morpheus"]      = true,
+}
+
+local clientNeedsNonLatin = NON_LATIN_LOCALE[GetLocale()] or false
+
+-- True when `faceName` would render as empty boxes on this client. The options
+-- dropdown uses this to say so; Media:Fetch uses it to quietly substitute.
+function Media:IsUnreadableFace(faceName)
+    return clientNeedsNonLatin and LATIN_ONLY_FACE[faceName] or false
+end
+
 -- Our media kind -> LibSharedMedia media type.
 local LSM_KIND = {
     statusbar  = "statusbar",
@@ -56,8 +127,13 @@ Media.builtin = {
         ["Gradient"]        = [[Interface\Buttons\GreyscaleRamp64]],
     },
 
-    -- Fonts. Blizzard ships these with every client and locale.
+    -- Fonts. Blizzard ships these files with every client, but only "Game
+    -- Default" is guaranteed to be able to *draw* the client's language -- the
+    -- other four are Latin-only faces, and picking one on a Russian, Korean or
+    -- Chinese client turns the panel into rows of empty boxes. Game Default is
+    -- therefore both the first entry and the fallback.
     font = {
+        ["Game Default"]    = false,   -- resolved per locale, see Media:UIFont()
         ["Friz Quadrata"]   = [[Fonts\FRIZQT__.TTF]],
         ["Arial Narrow"]    = [[Fonts\ARIALN.TTF]],
         ["Skurri"]          = [[Fonts\skurri.TTF]],
@@ -97,11 +173,13 @@ Media.strata = {
     "FULLSCREEN_DIALOG", "TOOLTIP",
 }
 
--- Fallback used whenever a saved name can't be resolved.
+-- Fallback used whenever a saved name can't be resolved. The font fallback is
+-- deliberately the locale-correct one: a shared-media font vanishing when its
+-- addon is uninstalled must not drop a non-Latin client into boxes.
 Media.fallback = {
     statusbar  = "Flat",
     background = "Solid",
-    font       = "Friz Quadrata",
+    font       = "Game Default",
     border     = "Pixel",
 }
 
@@ -165,6 +243,13 @@ function Media:Fetch(kind, name)
         return name
     end
 
+    -- "Game Default" carries no path of its own; it means "whatever this client
+    -- draws its own text with", which is only knowable at runtime.
+    if kind == "font" and (name == nil or name == "Game Default"
+        or self:IsUnreadableFace(name)) then
+        return self:UIFont()
+    end
+
     local builtin = self.builtin[kind]
     if builtin and name and builtin[name] then
         return builtin[name]
@@ -175,6 +260,8 @@ function Media:Fetch(kind, name)
         local path = LSM:Fetch(lsmKind, name, true)
         if path then return path end
     end
+
+    if kind == "font" then return self:UIFont() end
 
     return builtin and builtin[self.fallback[kind]] or nil
 end
@@ -250,7 +337,7 @@ end
 
 function Media:ApplyFont(fontString, faceName, size, flags, shadow)
     local path = self:Fetch("font", faceName)
-    local fallback = self.builtin.font[self.fallback.font]
+    local fallback = self:UIFont()
 
     if not trySetFont(fontString, path, size, flags) then
         -- Try the built-in font, then a known-good size, before giving up.

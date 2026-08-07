@@ -24,6 +24,23 @@ jobs:
       - name: Run luacheck
         run: luacheck .
 
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      # No test framework to install: tests/harness.lua is the framework and
+      # tests/wow_stub.lua is the game. The addon loads under a stubbed client
+      # and its pure logic -- priority parsing, value templating, the profile
+      # schema, import/export, every preset -- is called directly.
+      - name: Run the test suite
+        run: lua tests/run.lua
+
   toc:
     name: TOC completeness
     runs-on: ubuntu-latest
@@ -53,7 +70,10 @@ jobs:
             fi
           done
 
-          for file in $(find . -name '*.lua' -not -path './.git/*' | sed 's|^\./||' | sort); do
+          # tests/ is excluded here and in .pkgmeta: it never ships and never
+          # loads in game, so being absent from the TOC is correct for it.
+          for file in $(find . -name '*.lua' -not -path './.git/*' \
+              -not -path './tests/*' | sed 's|^\./||' | sort); do
             if ! echo "$listed" | grep -qxF "$file"; then
               echo "::error file=$file::'$file' is not listed in StatPanel.toc and will never load"
               status=1

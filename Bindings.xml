@@ -1,0 +1,26 @@
+<Bindings>
+    <!--
+        The bodies below are chunks compiled into the global environment, so
+        they can only reach global functions. Bindings.lua defines those five
+        and keeps the real work in a local module.
+
+        Every binding defaults to firing on key DOWN. None of them is marked
+        runOnUp, and none touches a protected frame, so all five stay usable in
+        combat.
+    -->
+    <Binding name="STATPANEL_TOGGLE" category="BINDING_HEADER_STATPANEL">
+        StatPanel_BindingToggle()
+    </Binding>
+    <Binding name="STATPANEL_OPTIONS" category="BINDING_HEADER_STATPANEL">
+        StatPanel_BindingOptions()
+    </Binding>
+    <Binding name="STATPANEL_LOCK" category="BINDING_HEADER_STATPANEL">
+        StatPanel_BindingLock()
+    </Binding>
+    <Binding name="STATPANEL_NEXTPROFILE" category="BINDING_HEADER_STATPANEL">
+        StatPanel_BindingNextProfile()
+    </Binding>
+    <Binding name="STATPANEL_GEAR" category="BINDING_HEADER_STATPANEL">
+        StatPanel_BindingGear()
+    </Binding>
+</Bindings>

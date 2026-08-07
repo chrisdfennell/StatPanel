@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+
+    "//": "The workspace settings disable the Lua standard library, because addon code runs inside the game and has no io, os or package. The test suite is the opposite: standalone Lua with a full standard library and none of the game. This re-enables it for this directory only.",
+
+    "runtime.version": "Lua 5.1",
+    "diagnostics.globals": [
+        "SPAddonDB",
+        "GetCritChance",
+        "UnitName",
+        "GetRealmName"
+    ]
+}

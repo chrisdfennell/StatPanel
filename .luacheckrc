@@ -36,6 +36,15 @@ globals = {
     "SPAddon_ApplyVisibility",
     "SPAddon_CreateOptionsPanel",
     "SPAddon_UpdateStatPanelVisibility",
+    -- Bindings.xml compiles its bodies into the global environment, so the
+    -- handlers it calls have to be globals. Blizzard reads the BINDING_NAME_*
+    -- and BINDING_HEADER_* globals when drawing the Key Bindings window; there
+    -- is no registration API for them.
+    "StatPanel_BindingToggle",
+    "StatPanel_BindingOptions",
+    "StatPanel_BindingLock",
+    "StatPanel_BindingNextProfile",
+    "StatPanel_BindingGear",
 }
 
 read_globals = {
@@ -45,19 +54,22 @@ read_globals = {
 
     -- Core UI
     "CreateFrame", "UIParent", "GameTooltip", "Minimap", "ChatFontNormal",
+    "tinsert",
     "BackdropTemplateMixin", "Mixin", "OpacitySliderFrame",
     "SettingsPanel", "Settings", "MenuUtil", "MenuResponse", "LibStub",
     "GetCursorPosition", "GetTime", "IsLoggedIn", "InCombatLockdown",
 
     -- Namespaced APIs
     "C_Timer", "C_PlayerInfo", "C_PetBattles", "C_SpecializationInfo",
-    "C_Item", "C_ChatInfo", "C_AddOns", "C_PaperDollInfo",
+    "C_Item", "C_ChatInfo", "C_AddOns", "C_PaperDollInfo", "C_CurrencyInfo",
     "C_TooltipInfo", "TooltipUtil",
 
     -- Character and stats
     "UnitName", "UnitClass", "UnitLevel", "UnitExists", "UnitArmor", "UnitStat",
     "UnitClassification", "UnitIsDeadOrGhost", "UnitInVehicle", "UnitPowerBarID",
-    "GetSpecialization", "GetSpecializationInfo",
+    "GetSpecialization", "GetSpecializationInfo", "GetBuildInfo",
+    "UnitHealthMax", "UnitPowerMax", "UnitAttackPower", "UnitRangedAttackPower",
+    "GetSpellBonusDamage",
     "GetCombatRating", "GetCombatRatingBonus", "GetCritChance", "GetHaste",
     "GetMasteryEffect", "GetDodgeChance", "GetParryChance", "GetBlockChance",
     "GetLifesteal", "GetAvoidance", "GetSpellCritChance",
@@ -67,6 +79,7 @@ read_globals = {
 
     -- Items
     "GetInventoryItemLink", "GetInventoryItemID", "GetItemStats", "GetDetailedItemLevelInfo",
+    "GetInventoryItemDurability", "GetRepairAllCost",
 
     -- Chat and performance
     "SendChatMessage", "GetFramerate", "GetNetStats",
@@ -84,6 +97,18 @@ read_globals = {
 
     -- Optional third-party addons we detect but never require
     "ElvUI",
+}
+
+-- The test suite is plain standalone Lua, not addon code. It runs under a real
+-- interpreter with a real standard library and none of the game's environment,
+-- so the declarations above are exactly the wrong set for it: `arg` and
+-- `loadfile` are legitimate there, and every WoW global it touches it defines
+-- itself, in wow_stub.lua.
+files = {
+    ["tests"] = {
+        read_globals = { "arg" },
+        globals = { "_G" },
+    },
 }
 
 -- CI installs Lua and LuaRocks into the workspace, so their own sources would

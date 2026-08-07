@@ -45,6 +45,12 @@ function SP:Setup()
     SP:CreatePanel()
     SP:CreateOptionsPanel()
     SP.Broker:Init()
+
+    -- Last, and deferred: this prints to chat, and the chat frame is not
+    -- reliably ready to receive at the moment PLAYER_LOGIN fires. A few
+    -- seconds also keeps it clear of the login message flood, where it would
+    -- scroll past unread.
+    C_Timer.After(5, function() SP.Diagnostics:ShowWhatsNew() end)
 end
 
 --------------------------------------------------------------------------------
@@ -62,6 +68,7 @@ local function usage()
     print(L["  |cffffd100/sp minimap|r - show or hide the minimap button"])
     print(L["  |cffffd100/sp gear|r - audit enchants, sockets and item level"])
     print(L["  |cffffd100/sp announce [channel]|r - report your gear to chat"])
+    print(L["  |cffffd100/sp debug|r - show diagnostics to paste into a bug report"])
 end
 
 SLASH_STATPANEL1 = "/sp"
@@ -119,6 +126,13 @@ SlashCmdList["STATPANEL"] = function(input)
         else
             SP.Announce:Send(channel:upper(), target)
         end
+
+    elseif command == "debug" or command == "diag" or command == "diagnostics" then
+        -- Printed as well as shown: a report that only exists in a window is
+        -- lost the moment someone closes it to go and find the issue tracker.
+        local report = SP.Diagnostics:Show()
+        SP:Print(L["diagnostics:"])
+        print(report)
 
     elseif command == "minimap" then
         SP.Broker:SetHidden(not SPAddonDB.global.minimap.hide)

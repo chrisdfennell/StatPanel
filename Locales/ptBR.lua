@@ -579,3 +579,91 @@ L["Block"] = "Bloqueio"
 L["Leech"] = "Sanguessuga"
 L["Avoidance"] = "Evitação"
 L["Speed"] = "Velocidade"
+
+--------------------------------------------------------------------------------
+-- Added in 2.5.0
+--------------------------------------------------------------------------------
+
+-- Bindings.lua
+L["Show or hide the panel"] = "Mostrar ou ocultar o painel"
+L["Open the options"] = "Abrir as opções"
+L["Lock or unlock the panel"] = "Travar ou destravar o painel"
+L["Switch to the next profile"] = "Mudar para o próximo perfil"
+L["Run the gear audit"] = "Executar a auditoria de equipamento"
+L["only one profile exists."] = "existe apenas um perfil."
+
+-- Diagnostics.lua
+L["yes"] = "sim"
+L["no"] = "não"
+L["LibStub not present"] = "LibStub ausente"
+L["absent"] = "ausente"
+L["present (revision %s)"] = "presente (revisão %s)"
+L["not present in this client"] = "ausente neste cliente"
+L["present, could not sample"] = "presente, não foi possível verificar"
+L["active (crit chance is protected)"] = "ativo (a chance de crítico está protegida)"
+L["present but crit chance is readable"] = "presente, mas a chance de crítico é legível"
+L["Locale"] = "Idioma"
+L["Class"] = "Classe"
+L["Secret values"] = "Valores protegidos"
+L["Profiles stored"] = "Perfis salvos"
+L["Custom stat priority"] = "Prioridade de atributos personalizada"
+L["enabled"] = "ativado"
+L["disabled"] = "desativado"
+L["locked"] = "travado"
+L["unlocked"] = "destravado"
+L["auto width"] = "largura automática"
+L["width %d"] = "largura %d"
+L["Position"] = "Posição"
+L[" (substituted: not readable in this locale)"] = " (substituída: ilegível neste idioma)"
+L["Stat rows"] = "Linhas de atributos"
+L["%d shown of %d placed"] = "%d exibidas de %d posicionadas"
+L["StatPanel diagnostics"] = "Diagnóstico do StatPanel"
+L["Ctrl-A to select all, Ctrl-C to copy. Paste this into your bug report."] = "Ctrl-A para selecionar tudo, Ctrl-C para copiar. Cole isto no seu relatório de erro."
+
+-- Diagnostics.lua: the what's-new notice
+L["updated to %s. New in this version:"] = "atualizado para %s. Novidades desta versão:"
+L["  Full changelog: %s"] = "  Registro de alterações completo: %s"
+L["Key bindings for toggling, locking, cycling profiles and the gear audit."] = "Atalhos de teclado para exibir, travar, alternar perfis e auditar o equipamento."
+L["New stats: attack power, spell power, health, mana and stagger."] = "Novos atributos: poder de ataque, poder mágico, vida, mana e cambaleio."
+L["The $per token shows what one percent of a stat costs in rating."] = "O token $per mostra quanto custa em índice um por cento de um atributo."
+L["Gear durability and repair cost can now sit in the footer."] = "A durabilidade do equipamento e o custo de reparo agora podem ficar no rodapé."
+L["A Colorblind Safe preset, and precise X/Y position controls."] = "Uma predefinição adequada ao daltonismo e controles precisos de posição X/Y."
+L["/sp debug collects everything a bug report needs into one copyable box."] = "/sp debug reúne tudo o que um relatório de erro precisa em uma caixa copiável."
+
+-- Options.lua: anchor points and position
+L["Top left"] = "Superior esquerdo"
+L["Top"] = "Superior"
+L["Top right"] = "Superior direito"
+L["Bottom left"] = "Inferior esquerdo"
+L["Bottom"] = "Inferior"
+L["Bottom right"] = "Inferior direito"
+L["Anchor point"] = "Ponto de ancoragem"
+L["Which corner of the panel the position below is measured from."] = "De qual canto do painel a posição abaixo é medida."
+L["Anchored to screen"] = "Ancorado à tela"
+L["Which point of the screen it is measured to. Anchoring to a corner keeps the panel there when the resolution changes."] = "Até qual ponto da tela a medida é feita. Ancorar em um canto mantém o painel ali quando a resolução muda."
+L["Horizontal position"] = "Posição horizontal"
+L["Vertical position"] = "Posição vertical"
+L[" (not readable in this language)"] = " (ilegível neste idioma)"
+
+-- Options.lua: durability in the footer
+L["Lowest gear durability"] = "Menor durabilidade do equipamento"
+L["The worst durability across your equipped slots, so you see the broken piece and not an average."] = "A pior durabilidade entre os espaços equipados, para você ver a peça danificada e não uma média."
+L["Repair cost"] = "Custo de reparo"
+L["The game can only price a repair at a merchant, so this shows nothing until you are talking to one."] = "O jogo só consegue calcular um reparo diante de um comerciante, então nada aparece até você falar com um."
+L["Durability format"] = "Formato da durabilidade"
+L["Durability considered good"] = "Durabilidade considerada boa"
+L["Durability considered poor"] = "Durabilidade considerada ruim"
+
+-- Presets.lua
+L["Okabe-Ito palette, readable with red-green colour blindness. Rank numbers on."] = "Paleta Okabe-Ito, legível com daltonismo vermelho-verde. Com números de ordem."
+
+-- SPMain.lua
+L["  |cffffd100/sp debug|r - show diagnostics to paste into a bug report"] = "  |cffffd100/sp debug|r - mostrar o diagnóstico para colar em um relatório de erro"
+L["diagnostics:"] = "diagnóstico:"
+
+-- StatPanel.lua: new stat names
+L["Attack Power"] = "Poder de ataque"
+L["Spell Power"] = "Poder mágico"
+L["Health"] = "Vida"
+L["Mana"] = "Mana"
+L["Stagger"] = "Cambaleio"

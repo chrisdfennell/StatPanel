@@ -10,7 +10,7 @@ framerate — with essentially every pixel of it configurable.
 
 Colors, textures, transparency, borders, fonts, sizes, layout, which stats
 appear and how their numbers are written are all options. If you would rather
-not configure anything, pick one of the 21 presets and you are done.
+not configure anything, pick one of the 22 presets and you are done.
 
 ![StatPanel](docs/Screenshot.png)
 
@@ -35,6 +35,7 @@ item level in the title, session speed peak, and framerate with both latencies.*
 - Leech, Avoidance, Movement speed with a session peak
 - Strength / Agility / Intellect / Stamina, plus a "Primary" row that resolves
   to whichever attribute your character actually scales with
+- Attack power, spell power, health, mana, and Brewmaster stagger
 - Sections can be renamed, reordered, and any stat moved between them
 
 **Quality of life**
@@ -45,8 +46,9 @@ item level in the title, session speed peak, and framerate with both latencies.*
 - Minimap button and a LibDataBroker feed
 - Gear audit: per-slot item level and upgrade track, tier set count, missing
   enchants, empty sockets and below-Epic gems
-- Fully localizable — English-complete and translation-ready (see
-  [Locales/README.md](Locales/README.md)); nothing embedded
+- Key bindings for the panel, profiles and the gear audit
+- Ten languages, each complete (see [Locales/README.md](Locales/README.md));
+  nothing embedded
 - Chat announce for your gear summary
 
 ---
@@ -95,6 +97,7 @@ embedded and nothing is required.
 | Parchment | Warm parchment and gold |
 | Frostbound / Ember | Cool blue / warm red themes |
 | Class Colored | Every bar in your class color |
+| Colorblind Safe | Okabe-Ito palette, readable with red-green colour blindness |
 | Big & Bold | Large high-contrast text, readable at a distance |
 | Ultra Compact | Four secondaries, nothing else |
 | Terminal | Green-on-black console readout |
@@ -124,6 +127,7 @@ approximation and still work.
 | `/sp announce [channel]` | Report your gear to chat |
 | `/sp peak` | Clear the session speed record |
 | `/sp minimap` | Show or hide the minimap button |
+| `/sp debug` | Collect diagnostics to paste into a bug report |
 
 `/statpanel` works as a longer alias for all of the above.
 
@@ -142,6 +146,7 @@ Each stat's text is a small template. Write whatever you like:
 | `$max` | The configured bar maximum |
 | `$peak` | Session peak (movement speed) |
 | `$yards` | Yards per second (movement speed) |
+| `$per` | Combat rating this stat costs per 1% |
 
 So `$rating - $value%` renders as `285 - 10.65%`.
 
@@ -164,6 +169,7 @@ cannot work on a protected value and degrade quietly rather than failing:
 - Auto-scaling bar maximums stop growing
 - The value-gradient color mode parks at its low end
 - Auto-width cannot measure that row
+- `$per` renders as `-`, since it is a division
 - **Chat announce omits those stats** — no addon is permitted to send them
 
 Item level, movement speed, spec and all gear data are *not* protected, so those
@@ -197,13 +203,15 @@ The addon is plain Lua with no build step. Files load in the order listed in
 | --- | --- |
 | `Media.lua` | Texture / font / border registry, LibSharedMedia bridge |
 | `Config.lua` | Defaults schema, profiles, import/export |
-| `Presets.lua` | The 21 one-click looks |
+| `Presets.lua` | The 22 one-click looks |
 | `Widgets.lua` | Option controls, built from raw frames |
 | `StatPanel.lua` | The panel: stat sources, layout, rendering |
 | `Gear.lua` | Equipped item audit |
 | `Announce.lua` | Chat reporting |
 | `AutoProfile.lua` | Profile switching rules |
 | `Menu.lua` | Right-click context menu |
+| `Diagnostics.lua` | `/sp debug` and the what's-new notice |
+| `Bindings.lua` | Key binding names and handlers |
 | `Broker.lua` | LibDataBroker feed and minimap button |
 | `Options.lua` | The options window |
 | `SPMain.lua` | Initialization and slash commands |
@@ -214,6 +222,22 @@ The addon is plain Lua with no build step. Files load in the order listed in
 pwsh -File tools/deploy.ps1            # deploy once
 pwsh -File tools/deploy.ps1 -Watch     # redeploy on every save
 ```
+
+### Tests
+
+```
+lua tests/run.lua              # everything
+lua tests/run.lua profiles     # one spec file
+```
+
+`tests/` loads the addon under a stubbed client (`tests/wow_stub.lua`) and calls
+the pure logic directly — priority parsing, the `$token` templates, the profile
+schema and migration, import/export, and every preset. No dependencies:
+`tests/harness.lua` is the framework. It does not, and cannot, replace loading
+the addon in game; it covers the parts that never needed a game to be wrong.
+
+`pwsh -File tools/locale-lint.ps1` checks the translations, and
+`-Export <locale>` prints a ready-to-fill stub for a new one.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for coding conventions and the pitfalls
 worth knowing about (secret values, deprecated Blizzard templates, taint), and

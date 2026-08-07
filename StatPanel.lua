@@ -73,6 +73,44 @@ local function ratingOf(statName)
     return 0
 end
 
+-- How much combat rating this stat currently costs per 1% of effect -- the
+-- number people actually optimize against, and the one the character sheet
+-- makes you do arithmetic to find.
+--
+-- The denominator is deliberately the RATING BONUS rather than the displayed
+-- value. Displayed values include a base the rating did not pay for (crit has
+-- one), so dividing by them would quietly understate the cost. That also makes
+-- this answer independent of the "total vs bonus" value-source setting.
+--
+-- Returns nil rather than a number whenever the division can't be trusted: a
+-- protected value, a stat with no rating behind it, or a bonus of zero.
+local function ratingPerPercent(statName)
+    local id = CR_ID[statName]
+    if not id or not GetCombatRating or not GetCombatRatingBonus then return nil end
+
+    local rating = plainNumber(GetCombatRating(id))
+    local bonus  = plainNumber(GetCombatRatingBonus(id))
+    if not rating or not bonus or bonus <= 0 then return nil end
+
+    return rating / bonus
+end
+SP.RatingPerPercent = ratingPerPercent
+
+-- UnitAttackPower reports (base, positiveBuff, negativeBuff), and the number
+-- worth showing is the sum. negativeBuff already arrives negative.
+--
+-- Any one of the three being protected forbids the addition, so the base is
+-- returned on its own: it is displayable as-is, and a slightly incomplete
+-- number beats an error every frame.
+local function totalFrom(getter, ...)
+    if type(getter) ~= "function" then return 0 end
+
+    local base, positive, negative = getter(...)
+    local b, p, n = plainNumber(base), plainNumber(positive), plainNumber(negative)
+    if not (b and p and n) then return base or 0 end
+    return b + p + n
+end
+
 --------------------------------------------------------------------------------
 -- MOVEMENT SPEED
 --------------------------------------------------------------------------------
@@ -203,6 +241,11 @@ local STAT_NAME = {
     Leech       = G("STAT_LIFESTEAL",       "Leech"),
     Avoidance   = G("STAT_AVOIDANCE",       "Avoidance"),
     Speed       = G("STAT_SPEED",           "Speed"),
+    AttackPower = G("STAT_ATTACK_POWER",    "Attack Power"),
+    SpellPower  = G("STAT_SPELLPOWER",      "Spell Power"),
+    Health      = G("HEALTH",               "Health"),
+    Mana        = G("MANA",                 "Mana"),
+    Stagger     = G("STAGGER",              "Stagger"),
 }
 
 local PRIMARY_NAME = {
@@ -274,6 +317,54 @@ local STAT_DEFS = {
             return percent, ratingOf("Speed"), nil, yards
         end,
     },
+
+    -- Power and pools. None of these has a combat rating behind it, so their
+    -- second return is 0 and $rating renders as such; they are $value stats.
+    AttackPower = {
+        name = STAT_NAME.AttackPower,
+        get = function()
+            -- Hunters and other ranged-weapon users carry their attack power on
+            -- the ranged side, and the melee call reports the wrong number for
+            -- them. Prefer ranged when the class actually has it.
+            local class = select(2, UnitClass("player"))
+            if class == "HUNTER" and UnitRangedAttackPower then
+                return totalFrom(UnitRangedAttackPower, "player"), 0
+            end
+            return totalFrom(UnitAttackPower, "player"), 0
+        end,
+    },
+    SpellPower = {
+        name = STAT_NAME.SpellPower,
+        get = function()
+            -- Spell power has been a single unified number since Cataclysm; the
+            -- per-school argument survives only as API shape. School 2 (Holy) is
+            -- the conventional one to ask for and reports that unified value.
+            if not GetSpellBonusDamage then return 0, 0 end
+            return num(GetSpellBonusDamage, 2), 0
+        end,
+    },
+    Health = {
+        name = STAT_NAME.Health,
+        get = function() return num(UnitHealthMax, "player"), 0 end,
+    },
+    Mana = {
+        name = STAT_NAME.Mana,
+        -- Power type 0 is mana specifically, not "whatever this class uses".
+        -- A rogue asking for mana correctly gets zero rather than energy.
+        get = function() return num(UnitPowerMax, "player", 0), 0 end,
+    },
+    Stagger = {
+        name = STAT_NAME.Stagger,
+        get = function()
+            -- Brewmaster-only, and the only place the game exposes the
+            -- percentage rather than the current staggered damage. Absent on
+            -- every other spec, where this reads zero rather than erroring.
+            if not (C_PaperDollInfo and C_PaperDollInfo.GetStaggerPercentage) then
+                return 0, 0
+            end
+            return num(C_PaperDollInfo.GetStaggerPercentage, "player"), 0
+        end,
+    },
 }
 
 SP.STAT_DEFS = STAT_DEFS
@@ -281,8 +372,9 @@ SP.STAT_DEFS = STAT_DEFS
 -- Stable, display-friendly ordering for the options UI.
 SP.STAT_ORDER = {
     "Primary", "Strength", "Agility", "Intellect", "Stamina",
+    "AttackPower", "SpellPower", "Health", "Mana",
     "Crit", "Haste", "Mastery", "Versatility",
-    "Armor", "Dodge", "Parry", "Block",
+    "Armor", "Dodge", "Parry", "Block", "Stagger",
     "Leech", "Avoidance", "Speed",
 }
 
@@ -371,20 +463,58 @@ function SP:GetCurrentPriority()
 end
 
 -- Maps the many spellings of a secondary stat -- Pawn's rating keys, sim output,
--- and how a person would just type it -- onto our four canonical keys. The key
--- is lowercased with every non-letter stripped, so "Critical Strike",
--- "CritRating" and "crit" all land together.
+-- and how a person would just type it -- onto our four canonical keys. Keys are
+-- normalized by normalizeWord below before lookup; more are registered from the
+-- client's own stat names once that function exists.
 local SECONDARY_ALIAS = {
     crit = "Crit", critical = "Crit", criticalstrike = "Crit", critrating = "Crit", critstrike = "Crit",
-    haste = "Haste", hasterating = "Haste",
-    mastery = "Mastery", masteryrating = "Mastery",
+    haste = "Haste", hasterating = "Haste", hast = "Haste",
+    mastery = "Mastery", masteryrating = "Mastery", mast = "Mastery",
     vers = "Versatility", versatility = "Versatility", versatilityrating = "Versatility",
     versa = "Versatility",
 }
 local SECONDARY_CANON = { "Crit", "Haste", "Mastery", "Versatility" }
 
+-- Case-folded with spaces and punctuation removed, so "Critical Strike",
+-- "CritRating" and "crit" all land on the same key.
+--
+-- Note what is NOT stripped: anything outside ASCII. An earlier version kept
+-- only [%a], which erases a Cyrillic or Korean stat name down to the empty
+-- string and made the localized aliases below unreachable on exactly the
+-- clients that need them.
+local function normalizeWord(word)
+    return (word:lower():gsub("[%s%p]", ""))
+end
+
+-- The panel's compact priority chain writes "Crit > Mast > Vers", and the
+-- German client calls Haste "Tempo". Both are things a user will reasonably
+-- type into the priority box, so both are registered as aliases: the client's
+-- own stat names from GlobalStrings, and our own abbreviations from SP.L.
+--
+-- English keys above are never overwritten -- a Pawn string is English on every
+-- client, and it has to keep working.
+local function registerAlias(name, stat)
+    if type(name) ~= "string" or name == "" then return end
+    local key = normalizeWord(name)
+    if key ~= "" and not SECONDARY_ALIAS[key] then
+        SECONDARY_ALIAS[key] = stat
+    end
+end
+
+for _, entry in ipairs({
+    { "STAT_CRITICAL_STRIKE", "Crit",        "Crit" },
+    { "STAT_HASTE",           "Haste",       "Haste" },
+    { "STAT_MASTERY",         "Mastery",     "Mast" },
+    { "STAT_VERSATILITY",     "Versatility", "Vers" },
+}) do
+    local globalName, stat, shortKey = entry[1], entry[2], entry[3]
+    registerAlias(_G[globalName], stat)
+    registerAlias(L[shortKey], stat)
+    registerAlias(L[stat], stat)
+end
+
 local function aliasOf(word)
-    return SECONDARY_ALIAS[(word:lower():gsub("[^%a]", ""))]
+    return SECONDARY_ALIAS[normalizeWord(word)]
 end
 
 -- Turns a pasted stat-weight string into a full four-stat priority order, or
@@ -428,8 +558,13 @@ function SP:ParsePriorityString(text)
     end
 
     -- Plain-order form: take the secondaries in the order they appear.
+    --
+    -- Split on separators rather than matching %a+ runs: %a is ASCII-only, so
+    -- matching it would find no words at all in a Cyrillic or Korean order
+    -- string and reject text that reads perfectly well to the person who typed
+    -- it. normalizeWord strips the punctuation that survives the split.
     local order, seen = {}, {}
-    for word in text:gmatch("%a+") do
+    for word in text:gmatch("[^%s,;>/|+]+") do
         local stat = aliasOf(word)
         if stat and not seen[stat] then
             seen[stat] = true
@@ -506,7 +641,7 @@ end
 -- so the gsub here only ever touches the plain template. The secrets themselves
 -- go straight to SetFormattedText, which is one of the few APIs allowed to
 -- receive them.
-local function buildFormat(template, cfg, label, extra)
+local function buildFormat(template, cfg, label, extra, statName)
     local decimals = math.max(0, math.min(4, cfg.decimals or 0))
     local numberFmt = "%." .. decimals .. "f"
     local order = {}
@@ -534,11 +669,26 @@ local function buildFormat(template, cfg, label, extra)
             -- string.format rather than deferred to SetFormattedText, so it must
             -- be reduced to a plain number first or it raises every frame.
             return escapePercent(string.format("%.1f", plainNumber(extra) or 0))
+        elseif token == "per" then
+            -- Combat rating per 1% of effect. Baked in here rather than
+            -- deferred like $value, because it is a quotient we computed from
+            -- plain numbers and never a secret in its own right.
+            --
+            -- Whole numbers on purpose: this is a rating cost in the hundreds,
+            -- and the stat's own decimal setting exists for a percentage.
+            local per = ratingPerPercent(statName)
+            return escapePercent(per and string.format("%.0f", per) or "-")
         end
     end)
 
     return fmt, order
 end
+
+-- Exported for tests/spec_format.lua. This is the single most breakage-prone
+-- function in the addon -- it is the secret-value workaround, it consumes
+-- free-text the user typed, and its output is fed to string.format every frame
+-- -- and it is pure, so it is worth checking outside the game.
+SP.BuildFormat = buildFormat
 
 -- Collects the arguments a built format expects, in order.
 local function formatArgs(order, value, rating)
@@ -561,6 +711,7 @@ local function safeFormat(template, fallback, value)
     if ok then return out end
     return tostring(value)
 end
+SP.SafeFormat = safeFormat
 
 --------------------------------------------------------------------------------
 -- PANEL
@@ -1103,6 +1254,12 @@ function Panel:StopDrag()
     frame:StopMovingOrSizing()
     frame.isMoving = false
     self:SavePosition()
+
+    -- The options window has anchor and X/Y controls bound to the same values
+    -- the drag just rewrote. Without this they keep showing where the panel
+    -- used to be, and the next nudge of a slider snaps it back there. Once per
+    -- drag, not per frame, so the cost of a full refresh is fine here.
+    if SP.UI and SP.UI.RefreshAll then SP.UI:RefreshAll() end
 end
 
 -- Single source of truth for whether the panel should currently be visible.
@@ -1279,7 +1436,7 @@ function Panel:Update(elapsed, force)
             end
 
             local label = cfg.label or dynamicName or def.name
-            local valueFmt, order = buildFormat(cfg.format or "$value", cfg, label, extra)
+            local valueFmt, order = buildFormat(cfg.format or "$value", cfg, label, extra, statName)
             local args, argCount = formatArgs(order, value, rating)
 
             if textStyle then
@@ -1481,6 +1638,55 @@ local function GetMemoryKB()
     return memoryKB
 end
 
+-- Lowest durability across the equipped slots, as a percentage, plus the cost
+-- to repair everything. Item data is not protected, so unlike the combat stats
+-- this can be compared and reported freely.
+--
+-- Sampled rather than polled: walking nineteen slots and asking the merchant API
+-- for a price is far too much work to do at the footer's update rate, and
+-- durability moves on the scale of minutes.
+local DURABILITY_SAMPLE_INTERVAL = 5
+local durabilityPercent, repairCost, lastDurabilitySample = 100, 0, -math.huge
+
+local function GetDurability()
+    local now = GetTime()
+    if now - lastDurabilitySample < DURABILITY_SAMPLE_INTERVAL then
+        return durabilityPercent, repairCost
+    end
+    lastDurabilitySample = now
+
+    local lowest
+    -- Slots 1..18; 19 is the tabard and has no durability. Empty slots and
+    -- slots holding something indestructible return nil and are skipped.
+    for slot = 1, 18 do
+        local current, maximum = GetInventoryItemDurability(slot)
+        if current and maximum and maximum > 0 then
+            local percent = (current / maximum) * 100
+            if not lowest or percent < lowest then lowest = percent end
+        end
+    end
+    durabilityPercent = lowest or 100
+
+    -- Only meaningful at a merchant; away from one this reports 0, which is
+    -- the honest answer to "what would this cost me right now".
+    repairCost = (GetRepairAllCost and select(1, GetRepairAllCost())) or 0
+
+    return durabilityPercent, repairCost
+end
+
+-- Money as gold/silver/copper with the coin icons. The bare global is
+-- deprecated in favour of the namespaced call, and both are guarded because
+-- one of them will eventually stop existing -- the same reason Widgets.lua
+-- builds its controls from raw frames.
+local function coinText(amount)
+    local fn = (C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString)
+        or _G.GetCoinTextureString
+    if not fn then return tostring(math.floor(amount / 10000)) .. "g" end
+
+    local ok, text = pcall(fn, amount)
+    return ok and text or tostring(math.floor(amount / 10000)) .. "g"
+end
+
 -- Picks good/ok/bad coloring for a performance number.
 local function qualityColor(value, good, bad, higherIsBetter)
     local footer = SP.db.footer
@@ -1527,6 +1733,23 @@ function Panel:BuildFooter()
         if footer.showWorldLatency then
             add(safeFormat(footer.worldFormat or "%d ms", "%d ms", world or 0),
                 qualityColor(world or 0, footer.msGood or 100, footer.msBad or 250, false))
+        end
+    end
+
+    if footer.showDurability or footer.showRepairCost then
+        local percent, cost = GetDurability()
+
+        if footer.showDurability then
+            add(safeFormat(footer.durabilityFormat or "%.0f%% dur", "%.0f%% dur", percent),
+                qualityColor(percent, footer.durabilityGood or 60,
+                    footer.durabilityBad or 20, true))
+        end
+
+        -- Suppressed at zero rather than shown as "0g": away from a merchant
+        -- the API cannot price a repair, and a permanent 0 would read as "your
+        -- gear is fine" exactly when it might not be.
+        if footer.showRepairCost and cost > 0 then
+            add(coinText(cost))
         end
     end
 

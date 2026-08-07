@@ -159,7 +159,10 @@ local DEFAULTS = {
     },
 
     font = {
-        face        = "Friz Quadrata",
+        -- "Game Default" rather than a named face: it resolves to whatever the
+        -- client draws its own text with, which is the only choice that is
+        -- readable in every locale. On an English client it *is* Friz Quadrata.
+        face        = "Game Default",
         shadow      = false,
         shadowColor = { 0, 0, 0, 1 },
         shadowX     = 1,
@@ -187,10 +190,16 @@ local DEFAULTS = {
         showHomeLatency = false,
         showWorldLatency= false,
         showMemory      = false,
+        -- Lowest durability across the equipped slots, and what a full repair
+        -- would cost. The cost is only knowable at a merchant, so it is hidden
+        -- rather than shown as zero everywhere else.
+        showDurability  = false,
+        showRepairCost  = false,
         fpsFormat       = "%.0f fps",
         homeFormat      = "%d ms",
         worldFormat     = "%d ms",
         memoryFormat    = "%.1f mb",
+        durabilityFormat = "%.0f%% dur",
         separator       = "  |  ",
         colorize        = true,
         goodColor       = { 0.35, 0.85, 0.40, 1 },
@@ -198,17 +207,19 @@ local DEFAULTS = {
         badColor        = { 0.90, 0.30, 0.30, 1 },
         fpsGood = 60, fpsBad = 30,
         msGood  = 100, msBad = 250,
+        durabilityGood = 60, durabilityBad = 20,
     },
 
     -- Section order and membership are fully user-editable. `prioritized` means
     -- the rows get re-sorted to match the current spec's stat priority.
     sections = {
         { id = "primary",       title = "PRIMARY",       enabled = false, showHeader = true,
-          stats = { "Primary", "Strength", "Agility", "Intellect", "Stamina" } },
+          stats = { "Primary", "Strength", "Agility", "Intellect", "Stamina",
+                    "AttackPower", "SpellPower", "Health", "Mana" } },
         { id = "enhancements",  title = "ENHANCEMENTS",  enabled = true,  showHeader = true, prioritized = true,
           stats = { "Crit", "Haste", "Mastery", "Versatility" } },
         { id = "defense",       title = "DEFENSE",       enabled = true,  showHeader = true,
-          stats = { "Armor", "Dodge", "Parry", "Block" } },
+          stats = { "Armor", "Dodge", "Parry", "Block", "Stagger" } },
         { id = "supplementary", title = "SUPPLEMENTARY", enabled = true,  showHeader = true,
           stats = { "Leech", "Avoidance", "Speed" } },
     },
@@ -222,6 +233,14 @@ local DEFAULTS = {
         Intellect   = statDefaults({ 0.41, 0.80, 0.94, 1 }, "$value", 10000, 0, "none", false),
         Stamina     = statDefaults({ 0.85, 0.42, 0.42, 1 }, "$value", 20000, 0, "none", false),
 
+        -- Power and pools. All off by default and all drawn without a bar:
+        -- these are reference numbers, and a bar wants a ceiling that means
+        -- something, which none of them has.
+        AttackPower = statDefaults({ 0.80, 0.55, 0.35, 1 }, "$valuec", 100000, 0, "none", false),
+        SpellPower  = statDefaults({ 0.55, 0.50, 0.90, 1 }, "$valuec", 100000, 0, "none", false),
+        Health      = statDefaults({ 0.75, 0.25, 0.25, 1 }, "$valuec", 5000000, 0, "none", false),
+        Mana        = statDefaults({ 0.35, 0.50, 0.90, 1 }, "$valuec", 1000000, 0, "none", false),
+
         Crit        = statDefaults({ 0.90, 0.30, 0.32, 1 }, "$value%", 100, 2),
         Haste       = statDefaults({ 0.92, 0.80, 0.30, 1 }, "$value%", 100, 2),
         Mastery     = statDefaults({ 0.40, 0.80, 0.42, 1 }, "$value%", 100, 2),
@@ -231,6 +250,9 @@ local DEFAULTS = {
         Dodge       = statDefaults({ 0.95, 0.60, 0.25, 1 }, "$value%", 100, 2),
         Parry       = statDefaults({ 0.85, 0.45, 0.55, 1 }, "$value%", 100, 2, "value", false),
         Block       = statDefaults({ 0.60, 0.65, 0.80, 1 }, "$value%", 100, 2, "value", false),
+        -- Brewmaster only. Reads zero on every other spec, which is why it is
+        -- off by default rather than merely hidden when irrelevant.
+        Stagger     = statDefaults({ 0.45, 0.70, 0.55, 1 }, "$value%", 100, 2, "value", false),
 
         Leech       = statDefaults({ 0.66, 0.40, 0.86, 1 }, "$value%", 100, 2),
         Avoidance   = statDefaults({ 0.30, 0.78, 0.82, 1 }, "$value%", 100, 2),
@@ -321,14 +343,31 @@ local function sanitize(stored, schema)
         return stored
     end
 
-    -- A fixed-length array of scalars (every color is {r,g,b,a}). If any slot is
-    -- missing or the wrong type the whole array is untrustworthy -- and this is
-    -- the only place a NO_MERGE color array gets a short or garbled copy
-    -- repaired, since fillDefaults deliberately won't reach inside one.
     local n = #schema
-    if n > 0 and type(schema[1]) ~= "table" then
+
+    -- A fixed-length array of numbers, which in this schema means a color
+    -- ({r,g,b,a}). If any slot is missing or the wrong type the whole array is
+    -- untrustworthy -- and this is the only place a NO_MERGE color array gets a
+    -- short or garbled copy repaired, since fillDefaults deliberately won't
+    -- reach inside one.
+    if n > 0 and type(schema[1]) == "number" then
         for i = 1, n do
             if type(stored[i]) ~= type(schema[i]) then return deepCopy(schema) end
+        end
+        return stored
+    end
+
+    -- A variable-length list of scalars: a section's stat names, and anything
+    -- later shaped like it. The stored LENGTH is authoritative here, unlike a
+    -- color's -- the schema's length is just what the default section happens
+    -- to contain, and treating a difference as corruption restored every stat
+    -- the user had deliberately removed, on every login, silently. Only the
+    -- element type is enforced; an entry of the wrong type is dropped rather
+    -- than condemning the whole list.
+    if n > 0 and type(schema[1]) ~= "table" then
+        local want = type(schema[1])
+        for i = #stored, 1, -1 do
+            if type(stored[i]) ~= want then table.remove(stored, i) end
         end
         return stored
     end
