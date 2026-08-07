@@ -10,7 +10,7 @@ jobs:
     name: Luacheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: leafo/gh-actions-lua@v10
         with:
@@ -28,7 +28,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: leafo/gh-actions-lua@v10
         with:
@@ -45,7 +45,7 @@ jobs:
     name: TOC completeness
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # A .lua file that isn't listed in the TOC never loads, which is easy to
       # miss in review and impossible to spot in-game without hunting.
@@ -87,7 +87,7 @@ jobs:
     name: Locales
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # SP.L falls back silently, so a mistyped key or a dropped format
       # specifier is invisible at runtime until the moment it breaks. pwsh ships
