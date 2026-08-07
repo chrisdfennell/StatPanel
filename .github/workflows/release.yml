@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The packager takes the version from the tag, but "## Version:" in the
       # TOC is a literal it never rewrites. Tagging v2.1.0 while the TOC still
@@ -76,7 +76,7 @@ jobs:
     needs: verify
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The packager derives the version and changelog from git history,
           # so it needs the full history and tags rather than a shallow clone.
