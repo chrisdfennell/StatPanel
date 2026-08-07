@@ -22,8 +22,44 @@ local currentPage
 -- SHARED VALUE LISTS
 --------------------------------------------------------------------------------
 local function mediaValues(kind)
-    return function() return Media:List(kind) end
+    if kind ~= "font" then
+        return function() return Media:List(kind) end
+    end
+
+    -- On a Korean or Chinese client the Latin-only built-in faces render as
+    -- boxes, and Media:Fetch quietly substitutes the client's own font for
+    -- them. Say so in the list rather than letting the choice look broken --
+    -- the entry stays selectable, because the substitution is harmless.
+    return function()
+        local out = {}
+        for _, name in ipairs(Media:List(kind)) do
+            if Media:IsUnreadableFace(name) then
+                out[#out + 1] = {
+                    value = name,
+                    name  = name .. L[" (not readable in this language)"],
+                }
+            else
+                out[#out + 1] = name
+            end
+        end
+        return out
+    end
 end
+
+-- The nine anchor points a frame can be positioned by. Values are what
+-- SetPoint expects and what lands in the saved profile, so they stay English
+-- on every client -- the same rule the media names follow.
+local ANCHOR_VALUES = {
+    { name = L["Top left"],      value = "TOPLEFT" },
+    { name = L["Top"],           value = "TOP" },
+    { name = L["Top right"],     value = "TOPRIGHT" },
+    { name = L["Left"],          value = "LEFT" },
+    { name = L["Center"],        value = "CENTER" },
+    { name = L["Right"],         value = "RIGHT" },
+    { name = L["Bottom left"],   value = "BOTTOMLEFT" },
+    { name = L["Bottom"],        value = "BOTTOM" },
+    { name = L["Bottom right"],  value = "BOTTOMRIGHT" },
+}
 
 local ALIGN_VALUES = {
     { name = L["Left"],   value = "LEFT" },
@@ -96,6 +132,27 @@ local function buildGeneral(content, stack)
     stack:Add(UI:Check(content, {
         label = L["Keep on screen"], path = "panel.clamp",
         tooltip = L["Prevents dragging the panel off the edge of the screen."],
+    }))
+
+    -- Dragging is the usual way to place the panel, and it is imprecise by
+    -- nature: matching another addon's position, or lining two panels up on a
+    -- pixel, is not something a mouse can do. These are the same numbers the
+    -- drag writes, so the two stay in step in both directions.
+    stack:Add(UI:Dropdown(content, {
+        label = L["Anchor point"], path = "panel.pos.point", values = ANCHOR_VALUES,
+        tooltip = L["Which corner of the panel the position below is measured from."],
+    }))
+    stack:Add(UI:Dropdown(content, {
+        label = L["Anchored to screen"], path = "panel.pos.relPoint", values = ANCHOR_VALUES,
+        tooltip = L["Which point of the screen it is measured to. Anchoring to a corner keeps the panel there when the resolution changes."],
+    }))
+    stack:Add(UI:Slider(content, {
+        label = L["Horizontal position"], path = "panel.pos.x",
+        min = -2000, max = 2000, step = 1,
+    }))
+    stack:Add(UI:Slider(content, {
+        label = L["Vertical position"], path = "panel.pos.y",
+        min = -2000, max = 2000, step = 1,
     }))
 
     stack:Add(UI:Slider(content, {
@@ -657,7 +714,7 @@ local function buildSections(content, stack)
                 row.check:SetHighlightTexture([[Interface\Buttons\UI-CheckBox-Highlight]], "ADD")
 
                 row.label = row:CreateFontString(nil, "OVERLAY")
-                row.label:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
+                row.label:SetFont(SP.UIFont(), 12, "")
                 row.label:SetPoint("LEFT", row.check, "RIGHT", 4, 0)
 
                 row.up = UI:Button(row, { text = L["Up"], width = 44, height = 20 })
@@ -778,6 +835,14 @@ local function buildFooter(content, stack)
     stack:Add(UI:Check(content, { label = L["Home latency"], path = "footer.showHomeLatency" }))
     stack:Add(UI:Check(content, { label = L["World latency"], path = "footer.showWorldLatency" }))
     stack:Add(UI:Check(content, { label = L["Addon memory use"], path = "footer.showMemory" }))
+    stack:Add(UI:Check(content, {
+        label = L["Lowest gear durability"], path = "footer.showDurability",
+        tooltip = L["The worst durability across your equipped slots, so you see the broken piece and not an average."],
+    }))
+    stack:Add(UI:Check(content, {
+        label = L["Repair cost"], path = "footer.showRepairCost",
+        tooltip = L["The game can only price a repair at a merchant, so this shows nothing until you are talking to one."],
+    }))
     stack:Add(UI:EditBox(content, { label = L["Separator between entries"], path = "footer.separator" }))
 
     stack:Gap(10)
@@ -787,6 +852,7 @@ local function buildFooter(content, stack)
     stack:Add(UI:EditBox(content, { label = L["Home latency format"], path = "footer.homeFormat" }))
     stack:Add(UI:EditBox(content, { label = L["World latency format"], path = "footer.worldFormat" }))
     stack:Add(UI:EditBox(content, { label = L["Memory format"], path = "footer.memoryFormat" }))
+    stack:Add(UI:EditBox(content, { label = L["Durability format"], path = "footer.durabilityFormat" }))
     stack:Add(UI:Note(content, L["These use standard number formats: %d for a whole number, %.1f for one decimal."]))
 
     stack:Gap(10)
@@ -803,6 +869,8 @@ local function buildFooter(content, stack)
     stack:Add(UI:Slider(content, { label = L["FPS considered poor"], path = "footer.fpsBad", min = 5, max = 120, step = 1 }))
     stack:Add(UI:Slider(content, { label = L["Latency considered good (ms)"], path = "footer.msGood", min = 10, max = 400, step = 5 }))
     stack:Add(UI:Slider(content, { label = L["Latency considered poor (ms)"], path = "footer.msBad", min = 50, max = 1000, step = 5 }))
+    stack:Add(UI:Slider(content, { label = L["Durability considered good"], path = "footer.durabilityGood", min = 10, max = 100, step = 5 }))
+    stack:Add(UI:Slider(content, { label = L["Durability considered poor"], path = "footer.durabilityBad", min = 0, max = 80, step = 5 }))
 end
 
 --------------------------------------------------------------------------------
@@ -1146,12 +1214,12 @@ local function buildGear(content, stack)
                 row:SetHeight(18)
 
                 row.name = row:CreateFontString(nil, "OVERLAY")
-                row.name:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
+                row.name:SetFont(SP.UIFont(), 12, "")
                 row.name:SetPoint("LEFT", row, "LEFT", 0, 0)
                 row.name:SetJustifyH("LEFT")
 
                 row.info = row:CreateFontString(nil, "OVERLAY")
-                row.info:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
+                row.info:SetFont(SP.UIFont(), 12, "")
                 row.info:SetPoint("LEFT", row, "LEFT", 90, 0)
                 row.info:SetPoint("RIGHT", row, "RIGHT", 0, 0)
                 row.info:SetJustifyH("LEFT")
@@ -1425,13 +1493,13 @@ local function ensurePreviewWindow()
     end)
 
     local heading = previewWindow:CreateFontString(nil, "OVERLAY")
-    heading:SetFont([[Fonts\FRIZQT__.TTF]], 13, "")
+    heading:SetFont(SP.UIFont(), 13, "")
     heading:SetTextColor(1, 0.82, 0.32)
     heading:SetPoint("TOP", previewWindow, "TOP", 0, -9)
     heading:SetText(L["Live Preview"])
 
     local note = previewWindow:CreateFontString(nil, "OVERLAY")
-    note:SetFont([[Fonts\FRIZQT__.TTF]], 10, "")
+    note:SetFont(SP.UIFont(), 10, "")
     note:SetTextColor(0.60, 0.60, 0.65)
     note:SetPoint("BOTTOM", previewWindow, "BOTTOM", 0, 8)
     note:SetWidth(330)
@@ -1583,7 +1651,7 @@ function SP:CreateOptionsPanel()
         tab.highlight:SetColorTexture(1, 1, 1, 0.08)
 
         tab.text = tab:CreateFontString(nil, "OVERLAY")
-        tab.text:SetFont([[Fonts\FRIZQT__.TTF]], 13, "")
+        tab.text:SetFont(SP.UIFont(), 13, "")
         tab.text:SetPoint("LEFT", tab, "LEFT", 8, 0)
         tab.text:SetText(def.name)
 

@@ -5,6 +5,107 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.5.0] - 2026-08-06
+
+### Fixed
+
+- **Removing a stat from a section did not stick.** The profile sanitizer
+  treated a section's stat list as a fixed-length array -- the rule that exists
+  to repair a garbled `{r,g,b,a}` colour -- so any section the user had
+  shortened was "repaired" back to the default membership on the next
+  `Config:Activate`, which is every login. There was no error and nothing on
+  screen to explain it; the stat you removed was simply back. Colour arrays are
+  now identified by holding numbers, and a variable-length list of names keeps
+  the length the user gave it. Found by the new test suite.
+
+### Added
+
+- **Four more translations**, all complete against the 520-key string set:
+  Russian (`ruRU`), Korean (`koKR`), Simplified Chinese (`zhCN`) and
+  Traditional Chinese (`zhTW`). These were blocked in 2.4.0 and the reason is
+  now gone -- see *Locale-correct fonts* below.
+
+  `zhTW` is written out rather than converted from `zhCN`. The two clients
+  differ in more than script: Versatility is 臨機應變 against 全能, Crit is
+  爆擊 against 暴擊, Leech is 汲取 against 吸血. A character-level conversion
+  would have produced text that reads fine and is wrong in precisely the words
+  a user is looking for.
+
+  **None of the ten translations has been reviewed by a native speaker.**
+  Terminology follows each client's own wording where it exists, and every file
+  says so in its header and points at the issue tracker.
+
+- **Locale-correct fonts.** The addon named `Fonts\FRIZQT__.TTF` directly in
+  eleven places. That file exists on the Korean and Chinese clients but carries
+  Latin glyphs only, so it loads, reports success, and draws empty boxes --
+  there is no error to catch. `Media:UIFont()` now resolves the client's own
+  font (`STANDARD_TEXT_FONT`, falling back to whatever `GameFontNormal` uses),
+  and a new **Game Default** font choice means the same in the options. A
+  preset or profile naming a Latin-only face on a non-Latin client is
+  substituted at draw time rather than rendering as boxes, and the font
+  dropdown says which faces this applies to.
+
+- **A test suite.** `tests/` loads the addon under a stubbed WoW client and
+  exercises the pure logic directly: Pawn/sim priority parsing, the `$token`
+  value templates and their secret-value guarantees, the profile schema, the v1
+  migration, sanitizing a corrupt profile, the import/export round trip, and
+  every preset. 160 tests, no dependencies -- `tests/harness.lua` is the
+  framework and CI already installs Lua. Run with `lua tests/run.lua`.
+
+  The preset check is the one worth calling out: a preset key that no longer
+  matches the defaults schema is written into the profile, read by nobody, and
+  silently does less than it claims. All 22 are now checked against the schema
+  on every push.
+
+- **Key bindings** for showing the panel, locking it, opening the options,
+  cycling to the next profile, and running the gear audit. In the game's Key
+  Bindings window under *StatPanel*; none is bound by default.
+
+- **`/sp debug`** collects the addon version, game build, locale, class, spec,
+  whether the client is protecting combat stats, the active profile, panel
+  state, the requested *and actually drawn* font, and which optional libraries
+  are present -- into one selectable box to paste into a bug report. It carries
+  no character or realm name; the usual destination is a public issue tracker.
+
+- **Five new stats**, all off by default: attack power (ranged for hunters),
+  spell power, maximum health, maximum mana, and Brewmaster stagger.
+
+- **`$per`**, a new value-format token: the combat rating cost of one percent
+  of a stat. `$value% ($per)` renders as `18.25% (120)`. It divides by the
+  rating *bonus* rather than the displayed value, so a stat with a base the
+  rating never paid for (crit) is not understated, and the answer does not
+  change with the total/bonus setting.
+
+- **Gear durability and repair cost in the footer** -- the lowest durability
+  across equipped slots, so you see the broken piece rather than an average,
+  with its own good/poor colour thresholds. The repair cost only appears at a
+  merchant, because that is the only place the game will price one.
+
+- **Precise panel position.** Anchor point, screen anchor and X/Y are now
+  editable in the options rather than only draggable, for lining the panel up
+  with another addon or putting it back where it was.
+
+- **A Colorblind Safe preset.** The default palette puts Crit in red and
+  Mastery in green, the two hues red-green colour blindness cannot separate,
+  and every other preset inherits it. This one uses the Okabe-Ito qualitative
+  palette and does not rely on colour alone: rank numbers are on, and the
+  footer's good/fair/poor scale is blue/yellow/vermillion.
+
+- **A "what's new" notice**, printed to chat once per version rather than shown
+  as a popup. Silent on a fresh install.
+
+- **The priority box accepts more of what people type**: the abbreviations the
+  panel itself displays (`Mast`, `Vers`), and the client's own stat names, so a
+  German user can type *Tempo*. Its tokenizer no longer depends on ASCII
+  letters, which previously meant a Cyrillic or Korean stat order parsed as
+  zero words.
+
+- `.github/dependabot.yml` for the pinned CI actions, monthly.
+
+- `docs/MULTI-PANEL.md` -- a measured design note on a second panel: why it is
+  a schema migration and 111 option bindings rather than a small feature, and a
+  four-stage plan for doing it safely. Not implemented.
+
 ## [2.4.0] - 2026-07-27
 
 ### Added

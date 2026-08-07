@@ -5,19 +5,24 @@ translated without touching the code. The **English string is the key** — ther
 is no separate English value file to maintain, and any string a translation
 doesn't cover falls back to English automatically.
 
-Six languages ship today, all complete against the current key set: German
+Ten languages ship today, all complete against the current key set: German
 (`deDE`), Spanish (`esES`), Latin American Spanish (`esMX`), French (`frFR`),
-Italian (`itIT`) and Brazilian Portuguese (`ptBR`). Copy any of their shapes.
+Italian (`itIT`), Brazilian Portuguese (`ptBR`), Russian (`ruRU`), Korean
+(`koKR`), Simplified Chinese (`zhCN`) and Traditional Chinese (`zhTW`). Copy any
+of their shapes.
 
 **None of them has been reviewed by a native speaker.** Terminology follows each
 client's own wording where it exists, but if you play in one of these languages
 and something reads badly, a corrected line in an issue or PR is genuinely the
 most useful contribution you can make.
 
-Russian, Korean and both Chinese locales are missing on purpose: the addon
-hardcodes `Fonts\FRIZQT__.TTF`, and those clients use locale-specific font
-files, so a translation would likely render as empty boxes. That has to be
-fixed before those languages are worth adding.
+The four non-Latin locales could not ship before 2.5.0: the addon named
+`Fonts\FRIZQT__.TTF` directly in eleven places, and that file carries Latin
+glyphs only on the Korean and Chinese clients — so it would have loaded
+successfully, raised nothing, and drawn rows of empty boxes. `Media:UIFont()`
+now asks the client for its own font, and `Media:Fetch("font", …)` substitutes
+it for any Latin-only face a preset or profile names. If you are adding a
+language, you do not need to think about fonts at all.
 
 ## Adding a language
 
@@ -79,11 +84,14 @@ quietly. Leave these exactly as they appear in the key:
 - **Color codes** — `|cffffd100 … |r` must survive intact.
 - **Slash subcommands** — `/sp toggle`, `/sp preset`. These are typed, not read.
   The `<name>` placeholder after them is prose and can be translated.
-- **Media names** — "Flat", "Pixel", "Friz Quadrata" and the other texture,
-  border and font names are absent from the key list on purpose. They are
-  lookup keys and LibSharedMedia registration names that get written into saved
-  profiles, so translating them would make a profile written on one client
-  unreadable on another.
+- **Media names** — "Flat", "Pixel", "Friz Quadrata", "Game Default" and the
+  other texture, border and font names are absent from the key list on purpose.
+  They are lookup keys and LibSharedMedia registration names that get written
+  into saved profiles, so translating them would make a profile written on one
+  client unreadable on another.
+- **Anchor point values** — the nine anchor names shown in the position
+  dropdowns *are* translated ("Top left"), but the `TOPLEFT` behind them is what
+  `SetPoint` receives and what lands in the profile. Only the label is a key.
 
 ## Strings you don't have to translate at all
 

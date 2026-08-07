@@ -77,13 +77,13 @@ local function safeSetFont(fontString, path, size, flags)
         local ok, applied = pcall(fontString.SetFont, fontString, path, size, flags or "")
         if ok and applied ~= false then return true end
     end
-    pcall(fontString.SetFont, fontString, [[Fonts\FRIZQT__.TTF]], size, flags or "")
+    pcall(fontString.SetFont, fontString, SP.UIFont(), size, flags or "")
     return false
 end
 
 local function newFontString(parent, size, r, g, b)
     local fs = parent:CreateFontString(nil, "OVERLAY")
-    fs:SetFont([[Fonts\FRIZQT__.TTF]], size or 12, "")
+    fs:SetFont(SP.UIFont(), size or 12, "")
     fs:SetTextColor(r or 0.9, g or 0.9, b or 0.9)
     return fs
 end
@@ -376,13 +376,13 @@ local function openMenu(owner, values, current, onSelect, preview)
             button.preview:SetTexture(Media:Fetch(preview, value))
             button.preview:SetVertexColor(0.45, 0.55, 0.75, 0.9)
             button.preview:Show()
-            button.text:SetFont([[Fonts\FRIZQT__.TTF]], 12, "OUTLINE")
+            button.text:SetFont(SP.UIFont(), 12, "OUTLINE")
         elseif preview == "font" then
             button.preview:Hide()
             safeSetFont(button.text, Media:Fetch("font", value), 13, "")
         else
             button.preview:Hide()
-            button.text:SetFont([[Fonts\FRIZQT__.TTF]], 12, "")
+            button.text:SetFont(SP.UIFont(), 12, "")
         end
 
         button.text:SetText(text)

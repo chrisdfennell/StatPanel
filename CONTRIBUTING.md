@@ -25,10 +25,12 @@ the CI check catches this.
 Please make sure:
 
 1. Every file parses. CI runs `luacheck`; you can run it locally the same way.
-2. Any new file is listed in `StatPanel.toc`.
-3. Any new option has a matching entry in the defaults schema in `Config.lua` —
+2. `lua tests/run.lua` passes. It needs nothing installed beyond Lua 5.1.
+3. Any new file is listed in `StatPanel.toc`.
+4. Any new option has a matching entry in the defaults schema in `Config.lua` —
    an option bound to a path that doesn't exist silently does nothing.
-4. You have loaded it in-game at least once. Static checks catch syntax and
+5. `pwsh -File tools/locale-lint.ps1` passes if you touched user-facing text.
+6. You have loaded it in-game at least once. Static checks catch syntax and
    wiring, not behavior.
 
 Say plainly in the PR what you tested in-game and what you didn't. "I couldn't
@@ -83,6 +85,22 @@ reason. Please don't reintroduce a dependency on an options template.
 Also don't set `category.ID` on a Settings category — it overwrites the numeric
 ID the game assigned and breaks opening the panel.
 
+### 2b. Never name a font file
+
+`Fonts\FRIZQT__.TTF` exists on every client. On the Korean and both Chinese
+clients it carries Latin glyphs only, so naming it loads successfully, returns
+no error, and draws empty boxes. There is nothing to catch and nothing in a
+bug report to point at it.
+
+Use `SP.UIFont()` for anything the addon draws for itself — the options window,
+the widgets, the preview. It resolves the client's own font. For anything the
+user picks, go through `Media:Fetch("font", name)`, which substitutes when the
+chosen face cannot draw the client's language.
+
+A preset should say `face = "Game Default"` rather than naming a face, unless
+the face is the whole point of the preset (Parchment's Morpheus, Terminal's
+Arial Narrow). `tests/spec_presets.lua` checks this.
+
 ### 3. Taint and secure code paths
 
 Anything attached to the Settings canvas (`OnShow`, `OnHide`) is called from
@@ -100,8 +118,10 @@ write a targeted updater.
 
 **A new stat:** add an entry to `STAT_DEFS` in `StatPanel.lua` with a `get`
 function returning `value, rating`, add display defaults under `stats` in
-`Config.lua`, and add its name to `SP.STAT_ORDER`. Route any arithmetic through
-`SP.PlainNumber`.
+`Config.lua`, add its name to `SP.STAT_ORDER`, and place it in a default
+section. Route any arithmetic through `SP.PlainNumber`. `tests/spec_schema.lua`
+enforces all five — miss one and the stat silently never appears, appears with
+no settings, or lists a row that renders nothing.
 
 **A new preset:** add a sparse table to `Presets.list` and its name to
 `Presets.order`. Only list the keys you actually want to change. A `dynamic`

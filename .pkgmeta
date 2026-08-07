@@ -12,6 +12,7 @@ ignore:
   - .github
   - .vscode
   - tools
+  - tests
   - docs
   - .editorconfig
   - .luacheckrc

@@ -1,0 +1,19 @@
+version: 2
+
+# The release workflow pins BigWigsMods/packager and the lint workflow pins the
+# Lua toolchain actions. Those pins are the point -- an unpinned packager could
+# change what ships -- but a pin nobody revisits is a pin that rots, and the
+# packager in particular tracks Blizzard's TOC and upload API changes.
+#
+# Monthly rather than weekly: this repository has four actions, none of which
+# moves often, and a PR nobody reads is worse than no PR.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+    open-pull-requests-limit: 3

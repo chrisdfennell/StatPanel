@@ -15,7 +15,7 @@ Presets.order = {
     -- General looks
     "Modern Bars", "Classic Text", "Compact Bars", "Blizzard", "Transparent",
     "Minimal Mono", "Neon", "Parchment", "Frostbound", "Ember", "Class Colored",
-    "Big & Bold", "Ultra Compact", "Terminal",
+    "Colorblind Safe", "Big & Bold", "Ultra Compact", "Terminal",
     -- Matches another addon's styling
     "ElvUI", "ElvUI Transparent",
     -- Role / activity focused
@@ -43,7 +43,7 @@ Presets.list = {
                 colorMode = "stat", smooth = true,
             },
             font = {
-                face = "Friz Quadrata", shadow = false,
+                face = "Game Default", shadow = false,
                 elements = {
                     title  = { size = 16, flags = "OUTLINE", color = { 0.95, 0.82, 0.32, 1 } },
                     header = { size = 10, flags = "OUTLINE", color = { 0.55, 0.58, 0.62, 1 } },
@@ -95,7 +95,7 @@ Presets.list = {
                 showLabel = true, showValue = true, showRank = false,
             },
             font = {
-                face = "Friz Quadrata", shadow = false,
+                face = "Game Default", shadow = false,
                 elements = {
                     title = { size = 13, flags = "OUTLINE", color = { 0.90, 0.90, 0.92, 1 } },
                     label = { size = 12, flags = "OUTLINE", color = { 0.90, 0.90, 0.92, 1 } },
@@ -181,7 +181,7 @@ Presets.list = {
                 style = "bar", texture = "Blizzard", height = 16, spacing = 5,
                 trackColor = { 0, 0, 0, 0.6 }, borderStyle = "None", smooth = true,
             },
-            font = { face = "Friz Quadrata", shadow = true },
+            font = { face = "Game Default", shadow = true },
             priorityLine = { enabled = true },
             footer = { enabled = true, showFPS = true },
         },
@@ -259,7 +259,7 @@ Presets.list = {
                 valueUseStatColor = true,
             },
             font = {
-                face = "Friz Quadrata", shadow = true,
+                face = "Game Default", shadow = true,
                 elements = {
                     title    = { size = 15, flags = "THICKOUTLINE", color = { 0.20, 0.95, 1.00, 1 } },
                     header   = { size = 10, flags = "OUTLINE", color = { 0.45, 0.85, 0.90, 1 } },
@@ -359,7 +359,7 @@ Presets.list = {
                 labelUseStatColor = true, valueUseStatColor = true, showRank = false,
             },
             font = {
-                face = "Friz Quadrata", shadow = true,
+                face = "Game Default", shadow = true,
                 elements = {
                     label  = { size = 15, flags = "OUTLINE", color = { 0.95, 0.72, 0.38, 1 } },
                     value  = { size = 15, flags = "OUTLINE", color = { 1, 1, 1, 1 } },
@@ -404,7 +404,7 @@ Presets.list = {
                 smooth = true, showRank = true,
             },
             font = {
-                face = "Friz Quadrata", shadow = false,
+                face = "Game Default", shadow = false,
                 elements = {
                     title  = { size = 14, flags = "OUTLINE", color = { 0.95, 0.82, 0.32, 1 } },
                     label  = { size = 11, flags = "OUTLINE" },
@@ -449,7 +449,7 @@ Presets.list = {
                 trackColor = { 0.02, 0.05, 0.09, 0.85 }, smooth = true,
             },
             font = {
-                face = "Friz Quadrata", shadow = true,
+                face = "Game Default", shadow = true,
                 elements = {
                     title    = { size = 15, flags = "OUTLINE", color = { 0.75, 0.92, 1.00, 1 } },
                     header   = { size = 10, flags = "OUTLINE", color = { 0.45, 0.65, 0.80, 1 } },
@@ -486,7 +486,7 @@ Presets.list = {
                 trackColor = { 0.06, 0.03, 0.02, 0.85 }, smooth = true,
             },
             font = {
-                face = "Friz Quadrata", shadow = true,
+                face = "Game Default", shadow = true,
                 elements = {
                     title    = { size = 15, flags = "OUTLINE", color = { 1.00, 0.75, 0.40, 1 } },
                     header   = { size = 10, flags = "OUTLINE", color = { 0.70, 0.45, 0.25, 1 } },
@@ -523,7 +523,7 @@ Presets.list = {
                 showRank = false, smooth = true,
             },
             font = {
-                face = "Friz Quadrata", shadow = true,
+                face = "Game Default", shadow = true,
                 elements = {
                     title = { size = 14, flags = "OUTLINE" },
                     label = { size = 11, flags = "OUTLINE" },
@@ -538,6 +538,73 @@ Presets.list = {
     --------------------------------------------------------------------------
     -- Deliberately oversized and high contrast, for readability at a distance
     -- or on a large display.
+    --------------------------------------------------------------------------
+    -- The default palette puts Crit in red and Mastery in green, which are the
+    -- two hues red-green colour blindness cannot separate -- and that affects
+    -- roughly one man in twelve. Every other preset inherits that palette.
+    --
+    -- The colours below are the Okabe-Ito qualitative palette, designed to stay
+    -- distinguishable under deuteranopia, protanopia and tritanopia. Colour is
+    -- also deliberately not the only channel carrying meaning here: rank
+    -- numbers are on, labels are on, and the footer's good/fair/poor scale is
+    -- blue/yellow/vermillion rather than the usual green/yellow/red.
+    ["Colorblind Safe"] = {
+        desc = L["Okabe-Ito palette, readable with red-green colour blindness. Rank numbers on."],
+        settings = {
+            panel = {
+                width = 224, autoWidth = false,
+                bgTexture = "Solid", bgColor = { 0.05, 0.05, 0.06, 0.92 },
+                borderStyle = "Pixel", borderColor = { 1, 1, 1, 0.22 }, borderSize = 1,
+                paddingX = 14, paddingTop = 12, paddingBottom = 8,
+                sectionGap = 8, headerStep = 20,
+                showTitle = true, titleMode = "ilvl", showDivider = true,
+            },
+            bars = {
+                style = "bar", texture = "Flat", height = 16, spacing = 6,
+                trackColor = { 0, 0, 0, 0.55 }, borderStyle = "None",
+                colorMode = "stat", smooth = true,
+                -- The number in front of each row says the priority order
+                -- without needing the colours to be told apart at all.
+                showLabel = true, showValue = true, showRank = true,
+                rankFormat = "%d. ",
+            },
+            font = {
+                face = "Game Default", shadow = true,
+                elements = {
+                    title    = { size = 16, flags = "OUTLINE", color = { 0.94, 0.89, 0.26, 1 } },
+                    header   = { size = 11, flags = "OUTLINE", color = { 0.72, 0.74, 0.78, 1 } },
+                    label    = { size = 12, flags = "OUTLINE", color = { 1, 1, 1, 1 } },
+                    value    = { size = 12, flags = "OUTLINE", color = { 1, 1, 1, 1 } },
+                    priority = { size = 11, flags = "OUTLINE", color = { 0.34, 0.71, 0.91, 1 } },
+                    footer   = { size = 12, flags = "OUTLINE", color = { 1, 1, 1, 1 } },
+                },
+            },
+            priorityLine = { enabled = true, colorize = false },
+            footer = {
+                enabled = true, showFPS = true, colorize = true,
+                goodColor = { 0.00, 0.45, 0.70, 1 },   -- blue
+                okColor   = { 0.94, 0.89, 0.26, 1 },   -- yellow
+                badColor  = { 0.84, 0.37, 0.00, 1 },   -- vermillion
+            },
+        },
+        stats = {
+            Crit        = { color = { 0.84, 0.37, 0.00, 1 } },   -- vermillion
+            Haste       = { color = { 0.94, 0.89, 0.26, 1 } },   -- yellow
+            Mastery     = { color = { 0.00, 0.62, 0.45, 1 } },   -- bluish green
+            Versatility = { color = { 0.34, 0.71, 0.91, 1 } },   -- sky blue
+
+            Armor       = { color = { 0.00, 0.45, 0.70, 1 } },   -- blue
+            Dodge       = { color = { 0.90, 0.62, 0.00, 1 } },   -- orange
+            Parry       = { color = { 0.80, 0.47, 0.65, 1 } },   -- reddish purple
+            Block       = { color = { 0.34, 0.71, 0.91, 1 } },
+            Stagger     = { color = { 0.00, 0.62, 0.45, 1 } },
+
+            Leech       = { color = { 0.80, 0.47, 0.65, 1 } },
+            Avoidance   = { color = { 0.00, 0.62, 0.45, 1 } },
+            Speed       = { color = { 0.90, 0.62, 0.00, 1 } },
+        },
+    },
+
     ["Big & Bold"] = {
         desc = L["Large, heavy, high-contrast text. Easy to read at a glance."],
         settings = {
@@ -555,7 +622,7 @@ Presets.list = {
                 valueUseStatColor = false,
             },
             font = {
-                face = "Friz Quadrata", shadow = true,
+                face = "Game Default", shadow = true,
                 elements = {
                     title    = { size = 22, flags = "THICKOUTLINE", color = { 1, 0.85, 0.35, 1 } },
                     header   = { size = 14, flags = "THICKOUTLINE", color = { 0.80, 0.82, 0.86, 1 } },
