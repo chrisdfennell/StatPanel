@@ -213,6 +213,9 @@ end
 -- percent signs here regardless: "1% of" reads as the %o specifier to the
 -- locale linter, and a translator has no way to know that.
 local HIGHLIGHTS = {
+    { version = "2.5.1", lines = {
+        L["Updated for World of Warcraft patch 12.1.0."],
+    } },
     { version = "2.5.0", lines = {
         L["Key bindings for toggling, locking, cycling profiles and the gear audit."],
         L["New stats: attack power, spell power, health, mana and stagger."],

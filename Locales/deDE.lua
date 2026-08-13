@@ -622,6 +622,7 @@ L["Ctrl-A to select all, Ctrl-C to copy. Paste this into your bug report."] = "S
 -- Diagnostics.lua: the what's-new notice
 L["updated to %s. New in this version:"] = "auf %s aktualisiert. Neu in dieser Version:"
 L["  Full changelog: %s"] = "  Vollständige Änderungsliste: %s"
+L["Updated for World of Warcraft patch 12.1.0."] = "Aktualisiert für World of Warcraft Patch 12.1.0."
 L["Key bindings for toggling, locking, cycling profiles and the gear audit."] = "Tastenbelegungen für Ein-/Ausblenden, Sperren, Profilwechsel und die Ausrüstungsprüfung."
 L["New stats: attack power, spell power, health, mana and stagger."] = "Neue Werte: Angriffskraft, Zaubermacht, Leben, Mana und Staffelung."
 L["The $per token shows what one percent of a stat costs in rating."] = "Der Platzhalter $per zeigt, wie viel Wertung ein Prozent eines Wertes kostet."

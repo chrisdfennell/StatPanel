@@ -629,6 +629,7 @@ L["Ctrl-A to select all, Ctrl-C to copy. Paste this into your bug report."] = "C
 -- Diagnostics.lua: the what's-new notice
 L["updated to %s. New in this version:"] = "%s(으)로 업데이트되었습니다. 이번 버전의 새로운 점:"
 L["  Full changelog: %s"] = "  전체 변경 내역: %s"
+L["Updated for World of Warcraft patch 12.1.0."] = "월드 오브 워크래프트 12.1.0 패치에 맞춰 업데이트되었습니다."
 L["Key bindings for toggling, locking, cycling profiles and the gear audit."] = "패널 표시, 고정, 프로필 전환, 장비 점검을 위한 단축키."
 L["New stats: attack power, spell power, health, mana and stagger."] = "새 능력치: 공격력, 주문력, 생명력, 마나, 시간차 피해."
 L["The $per token shows what one percent of a stat costs in rating."] = "$per 토큰은 능력치 1퍼센트가 평점으로 얼마인지 보여줍니다."
