@@ -633,6 +633,7 @@ L["Ctrl-A to select all, Ctrl-C to copy. Paste this into your bug report."] = "�
 -- Diagnostics.lua: the what's-new notice
 L["updated to %s. New in this version:"] = "已更新至 %s。本版本新增："
 L["  Full changelog: %s"] = "  完整更新紀錄：%s"
+L["Updated for World of Warcraft patch 12.1.0."] = "已更新以支援《魔獸世界》12.1.0 改版。"
 L["Key bindings for toggling, locking, cycling profiles and the gear audit."] = "為顯示、鎖定、切換設定檔與裝備檢查提供的快捷鍵。"
 L["New stats: attack power, spell power, health, mana and stagger."] = "新屬性：攻擊強度、法術強度、生命值、法力值與醉拳。"
 L["The $per token shows what one percent of a stat costs in rating."] = "$per 標記顯示一個百分點的屬性需要多少等級值。"

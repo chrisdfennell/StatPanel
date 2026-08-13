@@ -11,7 +11,8 @@ of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Interface version bumped to `120100` for patch 12.1.0.** No code changes
   were needed; this is the flag that stops the client and the listing sites
-  marking the addon out of date.
+  marking the addon out of date. The what's-new notice says as much on first
+  login, in all ten locales.
 
 ## [2.5.0] - 2026-08-06
 
