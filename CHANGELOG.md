@@ -5,6 +5,14 @@ All notable changes to StatPanel are recorded here.
 This project follows [Semantic Versioning](https://semver.org/) and the format
 of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Interface version bumped to `120100` for patch 12.1.0.** No code changes
+  were needed; this is the flag that stops the client and the listing sites
+  marking the addon out of date.
+
 ## [2.5.0] - 2026-08-06
 
 ### Fixed
