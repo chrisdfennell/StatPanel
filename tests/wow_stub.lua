@@ -212,7 +212,7 @@ function M.install(env)
     -- Character and stats
     ----------------------------------------------------------------------------
     def("GetLocale", function() return "enUS" end)
-    def("GetBuildInfo", function() return "12.0.7", "62000", "Jul 27 2026", 120007 end)
+    def("GetBuildInfo", function() return "12.1.0", "62000", "Jul 27 2026", 120100 end)
     def("UnitName", function() return "Teststrider" end)
     def("GetRealmName", function() return "Test Realm" end)
     def("UnitClass", function() return "Hunter", "HUNTER", 3 end)

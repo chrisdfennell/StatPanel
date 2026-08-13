@@ -1,7 +1,7 @@
 # StatPanel
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Interface](https://img.shields.io/badge/WoW-12.0%20Midnight-orange.svg)
+![Interface](https://img.shields.io/badge/WoW-12.1%20Midnight-orange.svg)
 ![Lua](https://img.shields.io/badge/Lua-5.1-000080.svg)
 
 A movable panel for World of Warcraft showing your secondary stats in your
